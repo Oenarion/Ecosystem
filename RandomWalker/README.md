@@ -14,7 +14,7 @@ Random walkers will leave footprints of the last 100 steps they've taken, also a
   - #### OPTIONAL
   - [ ] different simulations? (create walls after the walkers trail, etc...)
   - [ ] modify noise parameters?
-  - [ ] Add exit button with loading circle
+  - [x] Add exit button with loading circle
 - [ ] Add Gaussian Random Walk.
 - [ ] Add another file in which AI agents to adapt to the envinroment and try to reach another walker
 - [ ] Still thinking...
