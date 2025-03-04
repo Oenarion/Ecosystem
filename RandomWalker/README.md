@@ -10,7 +10,11 @@ Random walkers will leave footprints of the last 100 steps they've taken, also a
 
 # TO DO
 
-- [ ] Add a user interface to choose number of walkers, how many random or perlin, modify the noise, create walls in the map, etc...
+- [x] Add a user interface
+  - #### OPTIONAL
+  - [ ] different simulations? (create walls after the walkers trail, etc...)
+  - [ ] modify noise parameters?
+  - [ ] Add exit button with loading circle
 - [ ] Add Gaussian Random Walk.
 - [ ] Add another file in which AI agents to adapt to the envinroment and try to reach another walker
 - [ ] Still thinking...
