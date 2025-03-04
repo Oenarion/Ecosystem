@@ -13,7 +13,8 @@ MAX_WALKERS = 50
 
 mode_map = {
     0: 'random',
-    1: 'perlin'
+    1: 'perlin',
+    2: 'gaussian'
 }
 
 
@@ -98,14 +99,16 @@ def create_new_walker():
     rand_color = (random.randint(0,255), random.randint(0,255), random.randint(0,255))
     walker_x = random.randint(0, WIDTH)
     walker_y = random.randint(0, HEIGHT)
-    mode = mode_map[random.choice([0,1])]
+    mode = mode_map[random.choice([0,1,2])]
     if mode == 'perlin':
         starting_noise_x1 = random.uniform(0, 100)
         starting_noise_y1 = random.uniform(0, 100)
         starting_jump = 0.01
-        temp_walker = walker.Walker(walker_x, walker_y, rand_color, mode, WALKER_WIDTH, WALKER_HEIGHT, starting_noise_x1, starting_noise_y1, starting_jump)
+        temp_walker = walker.PerlinWalker(walker_x, walker_y, rand_color, mode, WALKER_WIDTH, WALKER_HEIGHT, starting_noise_x1, starting_noise_y1, starting_jump)
+    elif mode == 'random':
+        temp_walker = walker.RandomWalker(walker_x, walker_y, rand_color, mode, WALKER_WIDTH, WALKER_HEIGHT)
     else:
-        temp_walker = walker.Walker(walker_x, walker_y, rand_color, mode, WALKER_WIDTH, WALKER_HEIGHT)
+        temp_walker = walker.GaussianWalker(walker_x, walker_y, rand_color, mode, WALKER_WIDTH, WALKER_HEIGHT)
 
     return temp_walker
 
