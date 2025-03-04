@@ -3,6 +3,7 @@ import random
 import graphical_components as gc
 import walker
 import options as opt
+import time
 
 WIDTH = 640
 HEIGHT = 420
@@ -16,8 +17,6 @@ mode_map = {
 }
 
 
-
-# The only change in main_menu function is to use the slider's value
 def main_menu():
     pygame.init()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -142,21 +141,44 @@ def main(num_walkers):
 
     update_screen(screen, walkers)
 
+    loading_circle = gc.LoadingCircle(10, 10)  # Top-left corner
+    
+    # Font for instructions
+    esc_pressed = False
+    running = True
+
     pygame.display.set_caption("Random Walk Simulation")
-    while True:
+    while running:
         # Handle events
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return  # Quit simulation
 
+        keys = pygame.key.get_pressed()
+        
+        # ESC key handling
+        if keys[pygame.K_ESCAPE]:
+            if not esc_pressed:
+                # First time pressing ESC
+                loading_circle.start_loading()
+                esc_pressed = True
+        else:
+            # Reset if ESC is released
+            loading_circle.stop_loading()
+            esc_pressed = False
+
         for walker in walkers:
             walker.randomWalk(WIDTH, HEIGHT)
             if walker.get_walker_mode() == 'perlin' and update_step > 100:
                 walker.update_step(0.01)
-
+  
         update_step += 1
         screen.fill(background_color)
         update_screen(screen, walkers)
+        loading_circle.draw(screen)
+
+        if loading_circle.is_loading and time.time() - loading_circle.start_time >= loading_circle.duration:
+            running = False
         
         if len(walkers) < MAX_WALKERS:
             walker_generator_chance = random.randint(0,1000)

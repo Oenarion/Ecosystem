@@ -1,5 +1,6 @@
 import pygame
-
+import time
+import math
 
 ## SLIDER CLASS
 class Slider:
@@ -133,3 +134,66 @@ class Button:
                 self.current_color = self.hover_color
             else:
                 self.current_color = self.normal_color
+
+
+## LOADING CIRCLE CLASS
+class LoadingCircle:
+    def __init__(self, x, y, radius=10, duration=1.0, color=(255, 255, 255)):
+        """
+        Initialize the loading circle
+        
+        Args:
+        x, y: Center coordinates of the circle
+        radius: Radius of the circle
+        duration: Time to complete the loading (in seconds)
+        color: Color of the loading segment
+        background_color: Color of the background circle
+        """
+        self.x = x
+        self.y = y
+        self.radius = radius
+        self.duration = duration
+        self.color = color
+        
+        # Tracking variables
+        self.start_time = 0
+        self.is_loading = False
+    
+    def start_loading(self):
+        """
+        Start the loading timer
+        """
+        self.start_time = time.time()
+        self.is_loading = True
+    
+    def stop_loading(self):
+        """
+        Stop the loading timer
+        """
+        self.is_loading = False
+    
+    def draw(self, screen):
+        """
+        Draw the loading circle
+        
+        Args:
+        screen: Pygame screen surface to draw on
+        """
+        if not self.is_loading:
+            return
+        
+        # Calculate progress
+        elapsed_time = time.time() - self.start_time
+        progress = min(elapsed_time / self.duration, 1.0)
+
+        # Draw loading segment
+        if progress > 0:
+            # Draw arc from 3 o'clock position (0 degrees)
+            pygame.draw.arc(
+                screen, 
+                self.color, 
+                (self.x - self.radius, self.y - self.radius, self.radius * 2, self.radius * 2),
+                math.pi/2,  # Start from top
+                math.pi/2 + (progress * 2 * math.pi),  # End position based on progress
+                width=5  # Thickness of the arc
+            )
