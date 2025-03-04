@@ -1,6 +1,8 @@
 import pygame
 import random
-from perlin_noise import PerlinNoise
+import graphical_components as gc
+import walker
+import options as opt
 
 WIDTH = 640
 HEIGHT = 420
@@ -13,96 +15,66 @@ mode_map = {
     1: 'perlin'
 }
 
-class Walker():
-    """
-    Walker class, performs either:
-    - random walk, choosing a random step from -1 to 1.
-    - random walk with perlin noise, with a given starting noise and step.
-    """
-    def __init__(self, x, y, color, mode, starting_noise_x = None, starting_noise_y = None, step = None):
-        self.x = x
-        self.y = y
-        self.color = color
-        self.mode = mode
-        self.positions = []
 
-        #Perlin noise variant
-        self.noise_x = starting_noise_x
-        self.noise_y = starting_noise_y
-        self.step = step
-        self.noise_generator = PerlinNoise()
 
-    def randomWalk(self):
-        """
-        Updates the position of the walker following the chosen mode.
-        """
-        if self.mode == "random":
-            walk_x = random.uniform(-2, 2)
-            walk_y = random.uniform(-2, 2)
+# The only change in main_menu function is to use the slider's value
+def main_menu():
+    pygame.init()
+    screen = pygame.display.set_mode((WIDTH, HEIGHT))
+    pygame.display.set_caption("Random Walker Simulation")
+    clock = pygame.time.Clock()
 
-            self.x += walk_x
-            self.y += walk_y
+    # Create menu buttons
+    start_button = gc.Button(WIDTH // 2 - 100, HEIGHT // 2 - 75, 200, 50, "Start")
+    options_button = gc.Button(WIDTH // 2 - 100, HEIGHT // 2, 200, 50, "Options")
+    exit_button = gc.Button(WIDTH // 2 - 100, HEIGHT // 2 + 75, 200, 50, "Exit")
+
+    # Options menu
+    options_menu = opt.OptionsMenu(WIDTH, HEIGHT)
+    show_options = False
+
+    running = True
+    while running:
+        screen.fill((0, 0, 0))
+
+        for event in pygame.event.get():
+            # exit
+            if event.type == pygame.QUIT:
+                return False 
+            
+            # options
+            if show_options:
+                options_result = options_menu.handle_event(event)
+                if options_result == "BACK":
+                    show_options = False
+            # main menu
+            else:
+                start_button.handle_event(event)
+                options_button.handle_event(event)
+                exit_button.handle_event(event)
+
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if start_button.is_hovered(event.pos):
+                        # Start the simulation with current max walkers setting from slider
+                        main(int(options_menu.walkers_slider.current_val))
+                    
+                    if options_button.is_hovered(event.pos):
+                        show_options = True
+                    
+                    if exit_button.is_hovered(event.pos):
+                        return False  # Exit application
+
+        # Draw menu or options
+        if show_options:
+            options_menu.draw(screen)
         else:
-            # Add scale to make movements more pronounced
-            noise_scale = 5.0
-            
-            noise_x_value = self.noise_generator(self.noise_x) * noise_scale
-            noise_y_value = self.noise_generator(self.noise_y) * noise_scale
-            
-            # Occasionally add a random "kick" to break patterns
-            if random.random() < 0.05:  # 5% chance of a random kick
-                noise_x_value += random.uniform(-2, 2)
-                noise_y_value += random.uniform(-2, 2)
-            
-            # Add a second noise to create more variation
-            # This variations were introduced because the perlin walkers, seemed pretty "still" in the movement
-            second_scale = 2.0
-            noise_x_value += self.noise_generator(self.noise_x * 2.5) * second_scale
-            noise_y_value += self.noise_generator(self.noise_y * 2.5) * second_scale
-            
-            self.x += noise_x_value
-            self.y += noise_y_value
-            
-            self.noise_x += self.step
-            self.noise_y += self.step
-        
-            # Occasionally change direction in noise space
-            if random.random() < 0.01:
-                self.step = -self.step
+            # Draw menu buttons
+            start_button.draw(screen)
+            options_button.draw(screen)
+            exit_button.draw(screen)
 
-
-        # Keep walker in bounds
-        if self.x < 0:
-            self.x = 0
-        if self.x > WIDTH:
-            self.x = WIDTH - WALKER_WIDTH
-        if self.y < 0:
-            self.y = 0
-        if self.y > HEIGHT:
-            self.y = HEIGHT - WALKER_HEIGHT
-
-        self.positions.append([self.x, self.y])
-        if len(self.positions) > 100:
-            self.positions.pop(0)  
-
-    def update_step(self, step_update):
-        """
-        For Perlin walkers only, updates the step size.
-        """
-        self.step += step_update
-
-    def get_walker_mode(self):
-        """
-        Return the walker mode, used mainly to check if we want to use update_step().
-        """
-        return self.mode
-
-    def get_walker_attributes(self):
-        """
-        Returns position and color of walker, used mainly to draw the walker at each iteration.
-        """
-        return [self.positions, self.color]
-
+        pygame.display.update()
+        clock.tick(60)
 
 def update_screen(screen, walkers):
     """
@@ -112,12 +84,18 @@ def update_screen(screen, walkers):
         - walkers(Walker) -> objects to draw.
     """
     for walker in walkers:
-        positions, color = walker.get_walker_attributes()
+        positions, color, w_width, w_height = walker.get_walker_attributes()
         for x, y in positions:
-            rect = pygame.Rect(x, y, WALKER_WIDTH, WALKER_HEIGHT)
+            rect = pygame.Rect(x, y, w_width, w_height)
             pygame.draw.rect(screen, color, rect)
 
 def create_new_walker():
+    """
+    Creates a new walker with random attributes.
+
+    Returns:
+        The walker object.
+    """
     rand_color = (random.randint(0,255), random.randint(0,255), random.randint(0,255))
     walker_x = random.randint(0, WIDTH)
     walker_y = random.randint(0, HEIGHT)
@@ -126,19 +104,20 @@ def create_new_walker():
         starting_noise_x1 = random.uniform(0, 100)
         starting_noise_y1 = random.uniform(0, 100)
         starting_jump = 0.01
-        temp_walker = Walker(walker_x, walker_y, rand_color, mode, starting_noise_x1, starting_noise_y1, starting_jump)
+        temp_walker = walker.Walker(walker_x, walker_y, rand_color, mode, WALKER_WIDTH, WALKER_HEIGHT, starting_noise_x1, starting_noise_y1, starting_jump)
     else:
-        temp_walker = Walker(walker_x, walker_y, rand_color, mode)
+        temp_walker = walker.Walker(walker_x, walker_y, rand_color, mode, WALKER_WIDTH, WALKER_HEIGHT)
 
     return temp_walker
 
-def main():
+
+
+def main(num_walkers):
     pygame.init()
     clock = pygame.Clock()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
     #Creating walkers
-    num_walkers = random.randint(2, 30)
     print(f"Created {num_walkers} walkers!")
     walkers = []
     num_perlin = 0
@@ -171,7 +150,7 @@ def main():
                 return  # Quit simulation
 
         for walker in walkers:
-            walker.randomWalk()
+            walker.randomWalk(WIDTH, HEIGHT)
             if walker.get_walker_mode() == 'perlin' and update_step > 100:
                 walker.update_step(0.01)
 
@@ -179,7 +158,7 @@ def main():
         screen.fill(background_color)
         update_screen(screen, walkers)
         
-        if len(walkers) < 50:
+        if len(walkers) < MAX_WALKERS:
             walker_generator_chance = random.randint(0,1000)
             # 1 in 1000 chance to generate a new random walker at each step
             if walker_generator_chance > 999:
@@ -193,5 +172,5 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    main_menu()
     pygame.quit()
