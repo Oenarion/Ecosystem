@@ -178,6 +178,7 @@ def main(num_walkers):
             walker.randomWalk(WIDTH, HEIGHT)
             if walker.get_walker_mode() == 'perlin' and update_step > 100:
                 walker.update_step(0.01)
+                update_step = 0
   
         update_step += 1
         screen.fill(background_color)
