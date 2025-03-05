@@ -124,19 +124,23 @@ def main(num_walkers):
     walkers = []
     num_perlin = 0
     num_random = 0
+    num_gaussian = 0
 
     for _ in range(num_walkers):
         temp_walker = create_new_walker()
         if temp_walker.get_walker_mode() == 'random':
             num_random += 1
-        else:
+        elif temp_walker.get_walker_mode() == 'perlin':
             num_perlin += 1
+        else:
+            num_gaussian += 1
         walkers.append(temp_walker)
 
     background_color = (0, 0, 0)  # Black
     
-    print(f"We have {num_perlin} Perlin walkers!")
     print(f"We have {num_random} Random walkers!")
+    print(f"We have {num_perlin} Perlin walkers!")
+    print(f"We have {num_random} Gaussian walkers!")  
 
     screen.fill(background_color)
 

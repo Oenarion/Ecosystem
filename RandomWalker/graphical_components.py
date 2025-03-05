@@ -85,15 +85,9 @@ class Slider:
                 
                 # Snap to integer
                 self.current_val = round(self.current_val)
-                
-                self.handle_rect = pygame.Rect(
-                    self.handle_x, 
-                    self.rect.y - (self.handle_height - self.rect.height) // 2, 
-                    self.handle_width, 
-                    self.handle_height
-                )
+
                 # # Recalculate handle position
-                # self.calculate_handle_position()
+                self.calculate_handle_position()
         
         return int(self.current_val)
 
