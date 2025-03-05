@@ -4,7 +4,8 @@
 # How does it work?
 The algorithm is pretty simple, at the start a random number of walkers is generated at a random position between the boundaries, this walker will either be:
 - Random walkers, at each iteration they choose a random value from the range (-1, 1) and add it to their x and y, effectively doing a random step.
-- Random walkers with perlin noise[^2], the rationale is basically the same but this time the step is decided using a random timestep followed by the computation of the perlin noise for that timestep. Also additional noise is used in the equation to give the walker extra randomicity.
+- Gaussian walkers, the next step is decided taking from a gaussian distribution with a random mean (-5, 5) and random standard deviation (0, 2).
+- Perlin walkers, which use perlin noise[^2], the rationale is basically the same but this time the step is decided using a random timestep followed by the computation of the perlin noise for that timestep. Also additional noise is used in the equation to give the walker extra randomicity.
 
 Random walkers will leave footprints of the last 100 steps they've taken, also a new random walker has a 0.0001% chance to spawn at each iteration, so that the simulation feels more diverse.
 
@@ -15,8 +16,12 @@ Random walkers will leave footprints of the last 100 steps they've taken, also a
   - [ ] different simulations? (create walls after the walkers trail, etc...)
   - [ ] modify noise parameters?
   - [x] Add exit button with loading circle
-- [ ] Add Gaussian Random Walk.
-- [ ] Add another file in which AI agents to adapt to the envinroment and try to reach another walker
+  - [x] Add Gaussian Random Walk.
+- [x] Add another file in which AI agents to adapt to the envinroment and try to reach another walker
+  - [ ] Add timer if agents get stuck for multiple time
+  - [ ] Add more then two agents, each one following a certain one and escaping from a certain one
+  - [ ] Add acceleration when a walker is following a good lead
+  - [ ] Try deep reinforcement learning
 - [ ] Still thinking...
 
 
