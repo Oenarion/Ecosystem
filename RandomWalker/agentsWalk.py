@@ -5,7 +5,9 @@ import agentWalker
 import options as opt
 import time
 import numpy as np
+from collections import defaultdict
 
+# General parameters
 WIDTH = 640
 HEIGHT = 420
 AGENT_WIDTH = 10
@@ -13,12 +15,16 @@ AGENT_HEIGHT = 10
 MAX_WALKERS = 50
 
 # Q-learning parameters
-LEARNING_RATE = 0.1
-DISCOUNT_FACTOR = 0.9
-EXPLORATION_RATE = 0.9
-EXPLORATION_DECAY = 0.9
+LEARNING_RATE = 0.2 
+DISCOUNT_FACTOR = 0.9 
+EXPLORATION_RATE = 0.8  
+EXPLORATION_DECAY = 0.95 
+
 
 def update_screen(screen, agents):
+    """
+    Updates the positions of agents in the screen
+    """
     for agent in agents:
         pos, color, width, height = agent.get_agent_attributes()
         x, y = pos[-1]
@@ -26,15 +32,36 @@ def update_screen(screen, agents):
         pygame.draw.rect(screen, color, rect)
 
 def calculate_reward(agent, target_agent):
-    # Calculate exact distance
+    """
+    Computes the reward for an agent w.r.t. a target agent
+    """
     distance = ((agent.x - target_agent.x)**2 + (agent.y - target_agent.y)**2)**0.5
     
-    # Reward decreases exponentially as distance increases
-    reward = max(100 * np.exp(-distance/100), 0)
+    # Base reward inversely proportional to distance
+    reward = 100 * np.exp(-distance/100)
     
-    # Bonus for getting very close
+    # More pronounced bonus for getting close
     if distance < 20:
         reward += 50
+    if distance < 10:
+        reward += 100
+    if distance < 5:
+        reward += 200
+    
+    # Stronger penalty for boundary hits
+    if agent.get_boundary_hit():
+        reward -= 50
+    
+    # Add penalty for staying in the same position
+    if len(agent.positions) > 1 and agent.positions[-1] == agent.positions[-2]:
+        reward -= 5
+    
+    # Add small reward for moving toward the target
+    if len(agent.positions) > 1:
+        old_distance = ((agent.positions[-2][0] - target_agent.x)**2 + 
+                         (agent.positions[-2][1] - target_agent.y)**2)**0.5
+        if distance < old_distance:
+            reward += 10
     
     return reward
 
@@ -56,8 +83,7 @@ def main():
     agents = [agent_one, agent_two]
 
     episode_count = 0
-    max_episodes = 10000
-    total_rewards = [0, 0]
+    max_episodes = 1000
 
     loading_circle = gc.LoadingCircle(10, 10)  # Top-left corner
     
@@ -68,6 +94,8 @@ def main():
     decay_timer = 0
 
     pygame.display.set_caption("Agents Walk Simulation")
+    episode_steps = 0
+    start_time = time.time()
     while running and episode_count < max_episodes:
 
         for event in pygame.event.get():
@@ -106,31 +134,57 @@ def main():
             # Get new state and reward
             next_state = agent.get_state(target_agent)
             reward = calculate_reward(agent, target_agent)
-            total_rewards[i] += reward
+            agent.update_reward(reward)
             
             # Update Q-table
             agent.update_q_table(current_state, action, reward, next_state)
             
-        if decay_timer == 150:
+        if decay_timer == 50:
             # Decay exploration rate
-            agent.decay_exploration(EXPLORATION_DECAY)
+            for agent in agents:
+                agent.decay_exploration(EXPLORATION_DECAY)
             decay_timer = 0
         
         decay_timer += 1
-
+        episode_steps += 1
         # Check if agents have found each other
         distance = np.sqrt((agent_one.x - agent_two.x)**2 + (agent_one.y - agent_two.y)**2)
-        if distance < 10:
-            # Reset positions for next episode
-            agent_one.x, agent_one.y = random.randint(50, WIDTH-50), random.randint(50, HEIGHT-50)
-            agent_two.x, agent_two.y = random.randint(50, WIDTH-50), random.randint(50, HEIGHT-50)
+        # if more then 100s pass reset timer and go to next episode
+        if distance < 10 or time.time() - start_time > 100:
+            print(f"End of episode {episode_count}, current exploration rate: {agent_one.exploration_rate}, time elapsed: {time.time() - start_time}")
+            # Instead of completely random positions, consider placing them at opposite corners
+            # or at specific distances to encourage learning different scenarios
+            if episode_count % 4 == 0:
+                # Place at opposite corners
+                agent_one.x, agent_one.y = 50, 50
+                agent_two.x, agent_two.y = WIDTH-50, HEIGHT-50
+            elif episode_count % 4 == 1:
+                # Place at same side but far apart
+                agent_one.x, agent_one.y = 50, 50
+                agent_two.x, agent_two.y = WIDTH-50, 50
+            elif episode_count % 4 == 2:
+                # Random but with minimum distance
+                while True:
+                    agent_one.x, agent_one.y = random.randint(50, WIDTH-50), random.randint(50, HEIGHT-50)
+                    agent_two.x, agent_two.y = random.randint(50, WIDTH-50), random.randint(50, HEIGHT-50)
+                    if np.sqrt((agent_one.x - agent_two.x)**2 + (agent_one.y - agent_two.y)**2) > WIDTH/2:
+                        break
+            else:
+                # Completely random
+                agent_one.x, agent_one.y = random.randint(50, WIDTH-50), random.randint(50, HEIGHT-50)
+                agent_two.x, agent_two.y = random.randint(50, WIDTH-50), random.randint(50, HEIGHT-50)
+
+            if (episode_count % 20) == 0:
+                for agent in agents:
+                    agent.save_q_table(episode_count)
+
+            for agent in agents:
+                agent.update_reward_history(agent.current_reward, episode_steps)
+                print(f"AGENT CURRENT REWARD {agent.current_reward}, EPISODE STEPS: {episode_steps}")
+            episode_steps = 0
             episode_count += 1
             
-            # Print statistics every 100 episodes
-            if episode_count % 100 == 0:
-                print(f"Episode {episode_count}, exploration rates: {agent_one.exploration_rate:.4f}, {agent_two.exploration_rate:.4f}")
-                print(f"Total rewards: {total_rewards}")
-                total_rewards = [0, 0]
+            start_time = time.time()
         
         # Render agents
         update_screen(screen, agents)
@@ -150,6 +204,7 @@ def main():
         if loading_circle.is_loading and time.time() - loading_circle.start_time >= loading_circle.duration:
             running = False
         
+
         # Update display
         pygame.display.update()
         clock.tick(10)
