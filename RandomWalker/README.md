@@ -18,7 +18,8 @@ Random walkers will leave footprints of the last 100 steps they've taken, also a
   - [x] Add exit button with loading circle
   - [x] Add Gaussian Random Walk.
 - [x] Add another file in which AI agents to adapt to the envinroment and try to reach another walker
-  - [ ] Add timer if agents get stuck for multiple time
+  - [x] Add timer if agents get stuck for multiple time
+  - [ ] Add penalty for repeated steps
   - [ ] Add more then two agents, each one following a certain one and escaping from a certain one
   - [ ] Add acceleration when a walker is following a good lead
   - [ ] Try deep reinforcement learning
