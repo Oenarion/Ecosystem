@@ -36,6 +36,11 @@ class AgentWalker():
         self.rewards_history = []
         self.steps_history = []
 
+        # track recent actions
+        self.recent_actions = []
+        self.max_recent_actions = 10 
+        self.repetition_threshold = 3
+
     def check_boundaries(self, WIDTH, HEIGHT):
         """
         Check if agent is between the boundaries of the map, if not clamps the agent back in the possible space.
@@ -65,8 +70,6 @@ class AgentWalker():
         # - Distance (discretized)
         # - Direction (discretized to 8 directions)
         # - Relative position to boundaries
-        # - Agent's current velocity or previous action
-        # - Distance from center of the grid
         """
 
         x_grid = int(self.x / 10)
@@ -96,6 +99,44 @@ class AgentWalker():
             distance_bucket = 10 + int((distance - 20) / 10)
         
         return (distance_bucket, direction, int(boundary_x * 5), int(boundary_y * 5))
+    
+    def detect_repetitive_pattern(self):
+        """
+        Detect if the agent is stuck in a repetitive pattern of actions.
+        Returns True if a pattern is detected, False otherwise.
+        """
+        if len(self.recent_actions) < 4:
+            return False
+        
+        # Check for simple back-and-forth patterns (e.g., up-down-up-down)
+        # These would be opposite actions like (0,1) and (0,-1) or (1,0) and (-1,0)
+        for i in range(len(self.recent_actions) - 3):
+            # Simple oscillation between two actions
+            a1, a2 = self.recent_actions[i], self.recent_actions[i+1]
+            a3, a4 = self.recent_actions[i+2], self.recent_actions[i+3]
+            
+            # Check if a1 == a3 and a2 == a4 (repeating pair)
+            if a1 == a3 and a2 == a4:
+                # Check if they're opposites (like up-down)
+                if (a1[0] == -a2[0] and a1[1] == -a2[1]) or (a1[0] == -a2[0] or a1[1] == -a2[1]):
+                    return True
+        
+        # Check for longer patterns (e.g., up-right-down-left repeated)
+        # Simplest approach: check if last 4 actions repeat the previous 4
+        if len(self.recent_actions) >= 8:
+            pattern1 = tuple(self.recent_actions[-8:-4])
+            pattern2 = tuple(self.recent_actions[-4:])
+            if pattern1 == pattern2:
+                return True
+        
+        # Check if agent is just repeating the same action
+        if len(self.recent_actions) >= 4:
+            last_actions = self.recent_actions[-4:]
+            if last_actions.count(last_actions[0]) == len(last_actions):
+                return True
+                
+        return False
+
 
     def choose_action(self, state):
         """
@@ -103,20 +144,39 @@ class AgentWalker():
         """
         # EXPLORATION: random movement to update q table
         if random.uniform(0, 1) < self.exploration_rate:
+            action = random.choice(self.actions)
+            self.recent_actions.append(action)
+            if len(self.recent_actions) > self.max_recent_actions:
+                self.recent_actions.pop(0)
             return random.choice(self.actions)
         
         # EXPLOITATION: choose best option from q table
         state_actions = self.q_table[state]
         if not state_actions: # if this state was never reached just return a random movement
+            action = random.choice(self.actions)
+            self.recent_actions.append(action)
+            if len(self.recent_actions) > self.max_recent_actions:
+                self.recent_actions.pop(0)
             return random.choice(self.actions) 
 
-        # Choose best action, with slight randomness to prevent getting stuck
-        best_actions = [
-            action for action, value in state_actions.items() 
-            if value == max(state_actions.values())
-        ]
-
-        return random.choice(best_actions) if best_actions else random.choice(self.actions)
+        if self.detect_repetitive_pattern() and random.random() < 0.5:  # 50% chance to break pattern
+            # Choose random action to break pattern
+            action = random.choice(self.actions)
+            #print(f"{self.name} breaking out of action loop with random action {action}")
+        else:
+            # Choose best action normally
+            best_actions = [
+                action for action, value in state_actions.items() 
+                if value == max(state_actions.values())
+            ]
+            action = random.choice(best_actions) if best_actions else random.choice(self.actions)
+        
+        # Record this action
+        self.recent_actions.append(action)
+        if len(self.recent_actions) > self.max_recent_actions:
+            self.recent_actions.pop(0)
+        
+        return action
 
     def move(self, action):
         """
@@ -136,6 +196,16 @@ class AgentWalker():
 
 
     def update_q_table(self, state, action, reward, next_state):
+        """
+        Updates the values of the q_table.
+
+        Args:
+            - state (tuple) : current state of the agent.
+            - action (tuple) : current action of the agent.
+            - reward (float) : reward received by the agent for it's actions.
+            - next_state (tuple): next state of the agent.
+        """
+
         # Q-learning formula
         current_q = self.q_table[state][action]
         best_next_q = max(self.q_table[next_state].values()) if self.q_table[next_state] else 0
@@ -146,11 +216,19 @@ class AgentWalker():
         )
 
     
-    def decay_exploration(self, exploration_decay):
+    def decay_exploration(self, exploration_decay, no_minimum = False):
         """
         Decay exploration after some iterations such that exploitation is used more.
+        
+        Args:
+            - exploration_decay (float) : ratio of the decay of the exploration parameter
+            - no_minimum (boolean) : if set to True, exploration rate has no minimum value anymore and can
+                                     basically reach 0, used after many episodes to avoid still exploring
         """
-        self.exploration_rate = max(0.1, self.exploration_rate * exploration_decay)
+        if no_minimum:
+            self.exploration_rate = self.exploration_rate * exploration_decay
+        else:
+            self.exploration_rate = max(0.1, self.exploration_rate * exploration_decay)
 
     def get_agent_attributes(self):
         """
@@ -163,9 +241,15 @@ class AgentWalker():
         Returns whether the agent has hit a boundary during the last movement.
         """
         return self.hit_boundary
-    
+
+
     def save_q_table(self, episode_number):
-        
+        """
+        Saves the q_table with the respective episode it was saved at.
+
+        Args:
+            - episode_number (int) : number of episode to save the q_table at.
+        """
         # Create a directory for saving if it doesn't exist
         os.makedirs("q_tables", exist_ok=True)
         
@@ -181,7 +265,15 @@ class AgentWalker():
         
         print(f"Q-table saved for {self.name} at episode {episode_number}")
 
+
     def load_q_table(self, episode_number):
+        """
+        Loads previously saved q_tables.
+
+        Args:
+            - episode_number (int) : number of episode that we want to retrieve.
+        """
+
         filename = f"q_tables/{self.name}_episode_{episode_number}.pkl"
         
         try:
@@ -199,9 +291,36 @@ class AgentWalker():
             print(f"No Q-table found at {filename}")
             return False
         
+
     def update_reward_history(self, reward, steps):
+        """
+        Updates the reward history, just for debug reasons.
+
+        Args:
+            - reward (float) : current reward of the episode.
+            - steps (int) : steps done by the agent in the episode.
+        """
         self.steps_history.append(steps)
         self.rewards_history.append(reward)
 
+
     def update_reward(self, reward):
+        """
+        Updates the current reward.
+        """
         self.current_reward = reward
+
+    def partial_reset_q_table(self):
+        """
+        Reset Q-values that have negative values to zero to encourage re-exploration.
+        """
+        for state in self.q_table:
+            for action in self.q_table[state]:
+                if self.q_table[state][action] < 0:
+                    self.q_table[state][action] = 0
+
+    def update_exploration_rate(self, exploration_rate):
+        """
+        Updates the exploration rate.
+        """
+        self.exploration_rate = exploration_rate

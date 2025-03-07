@@ -6,6 +6,7 @@ import options as opt
 import time
 import numpy as np
 from collections import defaultdict
+import agents_utils as au
 
 # General parameters
 WIDTH = 640
@@ -21,9 +22,9 @@ EXPLORATION_RATE = 0.8
 EXPLORATION_DECAY = 0.95 
 
 
-def update_screen(screen, agents):
+def update_screen(screen, agents, episode_count, loading_circle):
     """
-    Updates the positions of agents in the screen
+    Render all the components on the screen.
     """
     for agent in agents:
         pos, color, width, height = agent.get_agent_attributes()
@@ -31,39 +32,12 @@ def update_screen(screen, agents):
         rect = pygame.Rect(x, y, width, height)
         pygame.draw.rect(screen, color, rect)
 
-def calculate_reward(agent, target_agent):
-    """
-    Computes the reward for an agent w.r.t. a target agent
-    """
-    distance = ((agent.x - target_agent.x)**2 + (agent.y - target_agent.y)**2)**0.5
-    
-    # Base reward inversely proportional to distance
-    reward = 100 * np.exp(-distance/100)
-    
-    # More pronounced bonus for getting close
-    if distance < 20:
-        reward += 50
-    if distance < 10:
-        reward += 100
-    if distance < 5:
-        reward += 200
-    
-    # Stronger penalty for boundary hits
-    if agent.get_boundary_hit():
-        reward -= 50
-    
-    # Add penalty for staying in the same position
-    if len(agent.positions) > 1 and agent.positions[-1] == agent.positions[-2]:
-        reward -= 5
-    
-    # Add small reward for moving toward the target
-    if len(agent.positions) > 1:
-        old_distance = ((agent.positions[-2][0] - target_agent.x)**2 + 
-                         (agent.positions[-2][1] - target_agent.y)**2)**0.5
-        if distance < old_distance:
-            reward += 10
-    
-    return reward
+    # Display episode count and exploration rates
+    font = pygame.font.Font(None, 20)
+    episode_text = font.render(f"Episode: {episode_count}", True, (255, 255, 255))
+    screen.blit(episode_text, (10, HEIGHT - 20))
+    loading_circle.draw(screen)
+
 
 
 def main():
@@ -83,6 +57,7 @@ def main():
     agents = [agent_one, agent_two]
 
     episode_count = 0
+    episode_resets = 0
     max_episodes = 1000
 
     loading_circle = gc.LoadingCircle(10, 10)  # Top-left corner
@@ -121,90 +96,45 @@ def main():
         screen.blit(s, (0, 0))
         
         # For each agent, choose action and update
-        for i, agent in enumerate(agents):
-            target_agent = agents[1 - i]  # The other agent
+        au.choose_agent_action_reward(agents)
             
-            # Get current state
-            current_state = agent.get_state(target_agent)
-            
-            # Choose and perform action
-            action = agent.choose_action(current_state)
-            agent.move(action)
-            
-            # Get new state and reward
-            next_state = agent.get_state(target_agent)
-            reward = calculate_reward(agent, target_agent)
-            agent.update_reward(reward)
-            
-            # Update Q-table
-            agent.update_q_table(current_state, action, reward, next_state)
-            
+    
         if decay_timer == 50:
             # Decay exploration rate
             for agent in agents:
-                agent.decay_exploration(EXPLORATION_DECAY)
+                if episode_count <= 50:
+                    agent.decay_exploration(EXPLORATION_DECAY)
+                else:
+                    agent.decay_exploration(EXPLORATION_DECAY, no_minimum = True)
             decay_timer = 0
+        
+
+        if episode_count % 15 == 0 and episode_count > 0:
+            for agent in agents:
+                agent.partial_reset_q_table()
         
         decay_timer += 1
         episode_steps += 1
         # Check if agents have found each other
         distance = np.sqrt((agent_one.x - agent_two.x)**2 + (agent_one.y - agent_two.y)**2)
         # if more then 100s pass reset timer and go to next episode
-        if distance < 10 or time.time() - start_time > 100:
-            print(f"End of episode {episode_count}, current exploration rate: {agent_one.exploration_rate}, time elapsed: {time.time() - start_time}")
-            # Instead of completely random positions, consider placing them at opposite corners
-            # or at specific distances to encourage learning different scenarios
-            if episode_count % 4 == 0:
-                # Place at opposite corners
-                agent_one.x, agent_one.y = 50, 50
-                agent_two.x, agent_two.y = WIDTH-50, HEIGHT-50
-            elif episode_count % 4 == 1:
-                # Place at same side but far apart
-                agent_one.x, agent_one.y = 50, 50
-                agent_two.x, agent_two.y = WIDTH-50, 50
-            elif episode_count % 4 == 2:
-                # Random but with minimum distance
-                while True:
-                    agent_one.x, agent_one.y = random.randint(50, WIDTH-50), random.randint(50, HEIGHT-50)
-                    agent_two.x, agent_two.y = random.randint(50, WIDTH-50), random.randint(50, HEIGHT-50)
-                    if np.sqrt((agent_one.x - agent_two.x)**2 + (agent_one.y - agent_two.y)**2) > WIDTH/2:
-                        break
-            else:
-                # Completely random
-                agent_one.x, agent_one.y = random.randint(50, WIDTH-50), random.randint(50, HEIGHT-50)
-                agent_two.x, agent_two.y = random.randint(50, WIDTH-50), random.randint(50, HEIGHT-50)
+        # simplifying the problem, agents found each other when they are in neighbourhood cells not in the same one
+        episode_steps, episode_count, episode_resets, start_time = au.reset_episode(distance, agents, agent_one, agent_two, start_time, WIDTH, HEIGHT)
 
-            if (episode_count % 20) == 0:
-                for agent in agents:
-                    agent.save_q_table(episode_count)
-
+        # AFTER 100 EPISODES STOP GOING INTO EXPLORATION MODE
+        if episode_resets > 15 and random.random() < 0.005 and episode_count < 100:
+            print(f"GOING INTO EXPLORATION MODE AGAIN, EXPLORATION RATE: {EXPLORATION_RATE}")
             for agent in agents:
-                agent.update_reward_history(agent.current_reward, episode_steps)
-                print(f"AGENT CURRENT REWARD {agent.current_reward}, EPISODE STEPS: {episode_steps}")
-            episode_steps = 0
-            episode_count += 1
-            
-            start_time = time.time()
-        
-        # Render agents
-        update_screen(screen, agents)
-        
-        # Display episode count and exploration rates
-        font = pygame.font.Font(None, 20)
-        episode_text = font.render(f"Episode: {episode_count}", True, (255, 255, 255))
-        screen.blit(episode_text, (10, HEIGHT - 20))
-        
-        # exp_rate_1 = font.render(f"Agent 1 Exploration: {agent_one.exploration_rate:.4f}", True, (255, 255, 255))
-        # exp_rate_2 = font.render(f"Agent 2 Exploration: {agent_two.exploration_rate:.4f}", True, (255, 255, 255))
-        # screen.blit(exp_rate_1, (10, HEIGHT - 45))
-        # screen.blit(exp_rate_2, (10, HEIGHT - 20))
-
-        loading_circle.draw(screen)
+                if random.random() < 0.5:
+                    agent.update_exploration_rate(EXPLORATION_RATE)
+            episode_resets = 0
 
         if loading_circle.is_loading and time.time() - loading_circle.start_time >= loading_circle.duration:
             running = False
-        
 
+        # Render all components
+        update_screen(screen, agents, episode_count, loading_circle)
+        
         # Update display
         pygame.display.update()
         clock.tick(10)
