@@ -119,7 +119,7 @@ def main():
         distance = np.sqrt((agent_one.x - agent_two.x)**2 + (agent_one.y - agent_two.y)**2)
         # if more then 100s pass reset timer and go to next episode
         # simplifying the problem, agents found each other when they are in neighbourhood cells not in the same one
-        episode_steps, episode_count, episode_resets, start_time = au.reset_episode(distance, agents, agent_one, agent_two, start_time, WIDTH, HEIGHT)
+        episode_steps, episode_count, episode_resets, start_time = au.reset_episode(distance, agents, agent_one, agent_two, start_time, episode_steps, episode_count, episode_resets, WIDTH, HEIGHT)
 
         # AFTER 100 EPISODES STOP GOING INTO EXPLORATION MODE
         if episode_resets > 15 and random.random() < 0.005 and episode_count < 100:

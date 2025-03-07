@@ -96,7 +96,7 @@ def choose_agent_action_reward(agents):
         # Update Q-table
         agent.update_q_table(current_state, action, reward, next_state)
 
-def reset_episode(distance, agents, agent_one, agent_two, start_time, WIDTH, HEIGHT):
+def reset_episode(distance, agents, agent_one, agent_two, start_time, episode_steps, episode_count, episode_resets, WIDTH, HEIGHT):
     """
     Checks if the condition for ending the episode is met, which is agents in neighboorhoud cells
     or timeout (more than 100s passed).
@@ -165,4 +165,6 @@ def reset_episode(distance, agents, agent_one, agent_two, start_time, WIDTH, HEI
         start_time = time.time()
 
         return episode_steps, episode_count, episode_resets, start_time
-    
+    else:
+        # Return the current values without changes
+        return episode_steps, episode_count, episode_resets, start_time
