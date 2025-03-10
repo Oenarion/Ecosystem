@@ -1,2 +1,3 @@
-__pycache__/
-q_tables
+Agents/__pycache__/
+Agents/q_tables
+Walkers/__pycache__/
