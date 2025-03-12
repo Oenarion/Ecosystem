@@ -18,7 +18,7 @@ def update_screen(screen: pygame.display, movers: list):
     """
 
     for mover in movers:
-        position, color, w_width, w_height = mover.get_mover_attributes()
+        position, _, _, color, w_width, w_height = mover.get_mover_attributes()
         rect = pygame.Rect(position.x, position.y, w_width, w_height)
         pygame.draw.rect(screen, color, rect)
 
@@ -27,7 +27,7 @@ def main():
     clock = pygame.Clock()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
-    num_movers = 1
+    num_movers = random.randint(1, 10)
     #Creating walkers
     print(f"Created {num_movers} movers!")
     movers = []
@@ -62,15 +62,14 @@ def main():
         if event.type == pygame.MOUSEBUTTONUP:
             is_wind_blowing = False
 
-        # apply wind force
-        if is_wind_blowing:
-            for mover in movers:
-                mover.apply_force(wind)
-                mover.update_position()
-
         # movers are now subject to gravity
-        for mover in movers:
+        for i, mover in enumerate(movers):
             mover.apply_force(gravity)
+            if is_wind_blowing:
+                mover.apply_force(wind)
+
+            # position, velocity, acceleration, _, _, _ = mover.get_mover_attributes()
+            # print(f"mover_{i} position: {position}, velocity: {velocity}, acceleration: {acceleration}")
             mover.update_position()
             mover.check_edges(WIDTH, HEIGHT)
 

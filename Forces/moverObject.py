@@ -2,7 +2,7 @@ import pygame
 
 class Mover():
     def __init__(self, x: int, y: int, color: tuple, h: int, w: int, mass = 1, 
-                velocity = pygame.Vector2(0,0), acceleration = pygame.Vector2(0,0)):
+                velocity = None, acceleration = None):
         
         
         self.color = color
@@ -12,8 +12,8 @@ class Mover():
         
         # this are all pygame Vectors
         self.position = pygame.Vector2(x, y)
-        self.velocity = velocity
-        self.acceleration = acceleration
+        self.velocity = velocity if velocity is not None else pygame.Vector2(0, 0)
+        self.acceleration = acceleration if acceleration is not None else pygame.Vector2(0, 0)
 
 
     def apply_force(self, force: pygame.Vector2):
@@ -64,4 +64,4 @@ class Mover():
         """
         Returns position and color of object, used mainly to draw the walker at each iteration.
         """
-        return [self.position, self.color, self.h, self.w] 
+        return [self.position, self.velocity, self.acceleration, self.color, self.h, self.w] 
