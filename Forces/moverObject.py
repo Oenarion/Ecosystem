@@ -1,16 +1,19 @@
 import pygame
 
 class Mover():
-    def __init__(self, x: int, y: int, color: tuple, h: int, w: int, elastiticy = -0.9, mass = 1, 
-                velocity = None, acceleration = None):
+    def __init__(self, x: int, y: int, color: tuple, h: int, w: int, elastiticy = -0.9, friction_coef = 0.7,
+                 mass = 1, velocity = None, acceleration = None):
         
         
         self.color = color
         self.h = h
         self.w = w
+        self.rect = pygame.Rect(x, y, w, h)
         self.__mass = mass
-        
+
+
         self.__elastiticy = elastiticy
+        self.friction_coef = friction_coef
         # this are all pygame Vectors
         self.__position = pygame.Vector2(x, y)
         self.__velocity = velocity if velocity is not None else pygame.Vector2(0, 0)
@@ -35,6 +38,7 @@ class Mover():
         self.__velocity += self.acceleration
         self.__position += self.velocity
         self.__acceleration *= 0 
+        self.rect = pygame.Rect(self.__position.x, self.__position.y, self.w, self.h)
 
 
     def check_edges(self, WIDTH: int, HEIGHT: int) -> None:
@@ -81,8 +85,42 @@ class Mover():
         """
         return [self.__position, self.__velocity, self.__acceleration, self.color, self.h, self.w] 
 
+    def get_draw_attributes(self):
+        """
+        Returns attributes for drawing, i.e. rect and color
+        """
 
-    # GETTERS
+        return [self.rect, self.color]
+
+    def compute_friction(self):
+        """
+        Computes friction, where F = -1*μ*N*v.
+        This method is now encapsulated into the mover's class because each mover could have a different friction coefficient, friction is now computed on the x axis.
+
+        Args:
+            - mover -> the mover object which we need to apply friction to
+
+        Returns the friction force.
+        """
+
+        normal = 1  # Normal force
+
+        # If velocity is very small, don't apply friction
+        if abs(self.__velocity.x) < 0.01:
+            return pygame.Vector2(0, 0)
+
+        friction_magnitude = self.friction_coef * normal
+        friction_vector = pygame.Vector2(-1 * self.__velocity.x, 0)  # Only in y direction
+
+        # Normalize and scale
+        friction_vector.normalize_ip()
+        friction_vector *= friction_magnitude
+        
+        return friction_vector
+
+
+    # GETTERS - just to test that you can actually do it
+    # getters are not needed in python most of the times
     @property
     def mass(self):
         """
