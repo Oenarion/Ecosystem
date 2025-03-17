@@ -8,13 +8,13 @@ class Mover():
         self.color = color
         self.h = h
         self.w = w
-        self.mass = mass
+        self.__mass = mass
         
-        self.elastiticy = elastiticy
+        self.__elastiticy = elastiticy
         # this are all pygame Vectors
-        self.position = pygame.Vector2(x, y)
-        self.velocity = velocity if velocity is not None else pygame.Vector2(0, 0)
-        self.acceleration = acceleration if acceleration is not None else pygame.Vector2(0, 0)
+        self.__position = pygame.Vector2(x, y)
+        self.__velocity = velocity if velocity is not None else pygame.Vector2(0, 0)
+        self.__acceleration = acceleration if acceleration is not None else pygame.Vector2(0, 0)
 
 
     def apply_force(self, force: pygame.Vector2):
@@ -24,17 +24,17 @@ class Mover():
         Args:
             - force -> force to be applied
         """
-        
-        f = force / self.mass  
-        self.acceleration += f 
+        force_copy = force.copy()
+        f = force_copy / self.__mass  
+        self.__acceleration += f 
 
     def update_position(self):
         """
         Updates the position of the mover, used after a force is applied via apply_force().
         """
-        self.velocity += self.acceleration
-        self.position += self.velocity
-        self.acceleration *= 0 
+        self.__velocity += self.acceleration
+        self.__position += self.velocity
+        self.__acceleration *= 0 
 
 
     def check_edges(self, WIDTH: int, HEIGHT: int) -> None:
@@ -47,19 +47,19 @@ class Mover():
             - HEIGHT -> height of the canvas
         """
 
-        if self.position.x > (WIDTH - self.w):
-            self.position.x = WIDTH - self.w
-            self.velocity.x *= self.elastiticy  
-        elif self.position.x < 0:
-            self.position.x = 0
-            self.velocity.x *= self.elastiticy  
+        if self.__position.x > (WIDTH - self.w):
+            self.__position.x = WIDTH - self.w
+            self.__velocity.x *= self.__elastiticy  
+        elif self.__position.x < 0:
+            self.__position.x = 0
+            self.__velocity.x *= self.__elastiticy  
 
-        if self.position.y < 0:
-            self.position.y = 0
-            self.velocity.y *= self.elastiticy  
-        elif self.position.y > (HEIGHT - self.h):
-            self.position.y = HEIGHT - self.h
-            self.velocity *= self.elastiticy
+        if self.__position.y < 0:
+            self.__position.y = 0
+            self.__velocity.y *= self.__elastiticy  
+        elif self.__position.y > (HEIGHT - self.h):
+            self.__position.y = HEIGHT - self.h
+            self.__velocity.y *= self.__elastiticy
         
         
     def check_floor(self, HEIGHT: int) -> bool:
@@ -71,7 +71,7 @@ class Mover():
 
         Returns True if floor is hit, False otherwise
         """
-        if self.position.y >= (HEIGHT - self.h):
+        if self.__position.y >= (HEIGHT - self.h):
             return True 
         return False
 
@@ -79,16 +79,27 @@ class Mover():
         """
         Returns position and color of object, used mainly to draw the walker at each iteration.
         """
-        return [self.position, self.velocity, self.acceleration, self.color, self.h, self.w] 
-    
-    def get_mass(self):
+        return [self.__position, self.__velocity, self.__acceleration, self.color, self.h, self.w] 
+
+
+    # GETTERS
+    @property
+    def mass(self):
         """
-        Returns the mover's mass.
+        Returns the mover's mass
         """
-        return self.mass
-    
-    def get_velocity(self):
+        return self.__mass
+
+    @property
+    def velocity(self):
         """
         Returns the mover's velocity
         """
-        return self.velocity
+        return self.__velocity
+    
+    @property
+    def acceleration(self):
+        """
+        Returns the mover's acceleration
+        """
+        return self.__acceleration

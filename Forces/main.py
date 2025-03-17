@@ -32,21 +32,23 @@ def compute_friction(mover):
     Returns the friction force.
     """
 
-    c = 0.7
-    normal = 1
+    c = 0.7  # Friction coefficient
+    normal = 1  # Normal force
 
-    vel = mover.get_velocity().copy()
-    
-    if vel.length_squared() == 0:  # No friction if already stopped
+    vel_y = mover.velocity.y
+
+    # If velocity is very small, don't apply friction
+    if abs(vel_y) < 0.01:
         return pygame.Vector2(0, 0)
 
-    print(f"curr mover velocity: {vel}")
-    vel *= -1  
-    vel.normalize_ip() 
-    vel *= c * normal  
+    friction_magnitude = c * normal
+    friction_vector = pygame.Vector2(0, -1 * vel_y)  # Only in y direction
 
-    print(f"computed friction: {vel}")
-    return vel
+    # Normalize and scale
+    friction_vector.normalize_ip()
+    friction_vector *= friction_magnitude
+    
+    return friction_vector
 
 
 def main():
@@ -54,14 +56,14 @@ def main():
     clock = pygame.Clock()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
-    num_movers = random.randint(1, 5)
+    num_movers = 1
     #Creating walkers
     print(f"Created {num_movers} movers!")
     movers = []
 
     for _ in range(num_movers):
         h, w = 20, 20
-        x, y = random.randint(0, WIDTH), random.randint(0, HEIGHT)
+        x, y = random.randint(100, WIDTH - 100), random.randint(100, HEIGHT - 100)
         mass = random.randint(1, 5)
         rand_color = (random.randint(0,255), random.randint(0,255), random.randint(0,255))
         curr_mover = moverObject.Mover(x, y, rand_color, h, w, mass=mass)
@@ -94,16 +96,17 @@ def main():
         for i, mover in enumerate(movers):
 
             # scale the gravity by the mover's mass
-            mover.apply_force(gravity * mover.get_mass())
+            mover.apply_force(gravity * mover.mass)
+
             if is_wind_blowing:
                 mover.apply_force(wind)
 
-            if mover.check_floor(HEIGHT):
+            if mover.check_floor(HEIGHT) and abs(mover.velocity.y) > 0.01:
                 friction = compute_friction(mover)
                 mover.apply_force(friction)
-            # position, velocity, acceleration, _, _, _ = mover.get_mover_attributes()
-            # print(f"mover_{i} position: {position}, velocity: {velocity}, acceleration: {acceleration}")
+
             mover.update_position()
+        
             mover.check_edges(WIDTH, HEIGHT)
 
             
