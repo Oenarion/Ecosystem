@@ -175,7 +175,7 @@ def simulation2_main():
         size = random.randint(5, 10)
         h, w = size, size
         x, y = random.randint(100, WIDTH - 100), 100
-        mass = random.randint(1, 5)
+        mass = random.randint(30, 50)
         rand_color = (random.randint(0,255), random.randint(0,255), random.randint(0,255))
         curr_mover = moverObject.Mover(x, y, rand_color, h, w, mass=mass)
         movers.append(curr_mover)
@@ -186,7 +186,7 @@ def simulation2_main():
 
     running = True
 
-    gravity = pygame.Vector2(0, 0.1)
+    gravity = pygame.Vector2(0, 0.01)
 
     pygame.display.set_caption("Forces Simulation")
     while running:
@@ -203,7 +203,7 @@ def simulation2_main():
 
 
             # scale the gravity by the mover's mass
-            # mover.apply_force(gravity * mover.mass)
+            #mover.apply_force(gravity * mover.mass)
 
             grav_force = attractor.attract(mover)
             print(grav_force)

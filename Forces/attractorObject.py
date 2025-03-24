@@ -4,9 +4,7 @@ import moverObject
 class Attractor():
     def __init__(self, x: int, y: int, color: tuple, h: int, w: int, mass = 1):
 
-        #self.h = h
-        #self.w = w
-        self.G = 0.5
+        self.G = 1
         self.mass = mass        
         self.color = color
         self.position = pygame.Vector2(x, y)
@@ -30,7 +28,8 @@ class Attractor():
         # Evita divisione per zero e imposta un limite minimo alla distanza
         distance = max(distance, 5)
 
-        magnitude = (self.G * mover.mass * self.mass) / distance**2
+        # add a limit to the force or the object will be sent away when too close to the attractor
+        magnitude = min(1.5, (self.G * mover.mass * self.mass) / distance**2)
 
         force.normalize_ip()
         force *= magnitude
