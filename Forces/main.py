@@ -165,14 +165,14 @@ def simulation2_main():
     clock = pygame.Clock()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
-    num_movers = 1
+    num_movers = random.randint(1, 10)
     print(f"Created {num_movers} movers!")
     movers = []
     
     attractor = attractorObject.Attractor(300, 200, (128, 128, 0), 30, 30, 100)
     
-    for i in range(num_movers):
-        size = random.randint(5, 10)
+    for _ in range(num_movers):
+        size = random.randint(5, 20)
         h, w = size, size
         x, y = random.randint(100, WIDTH - 100), 100
         mass = random.randint(30, 50)
@@ -186,8 +186,6 @@ def simulation2_main():
 
     running = True
 
-    gravity = pygame.Vector2(0, 0.01)
-
     pygame.display.set_caption("Forces Simulation")
     while running:
         # Handle events
@@ -200,10 +198,6 @@ def simulation2_main():
 
             if mover.check_floor(HEIGHT) and abs(mover.velocity.y) < 0.1:
                 mover.velocity.y = 0
-
-
-            # scale the gravity by the mover's mass
-            #mover.apply_force(gravity * mover.mass)
 
             grav_force = attractor.attract(mover)
             print(grav_force)

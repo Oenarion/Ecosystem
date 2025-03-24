@@ -25,11 +25,13 @@ class Attractor():
         force = self.position - mover.position  # Inverti l'ordine della sottrazione
         distance = force.magnitude()
 
-        # Evita divisione per zero e imposta un limite minimo alla distanza
-        distance = max(distance, 5)
+        # add a limit to the distance so that the force is never too weak or too strong.
+        # the distance is now between 20 and 40
+        # the higher the numbers the lower the power of the force
+        
+        distance = max(20, min(distance, 40))
 
-        # add a limit to the force or the object will be sent away when too close to the attractor
-        magnitude = min(1.5, (self.G * mover.mass * self.mass) / distance**2)
+        magnitude = (self.G * mover.mass * self.mass) / distance**2
 
         force.normalize_ip()
         force *= magnitude
