@@ -11,7 +11,7 @@ BACKGROUND_COLOR = (0, 0, 0) # black
 
 MAX_MOVERS = 10
 
-def update_screen(screen: pygame.display, movers: list, liquid: liquidObject.Liquid, attractor: attractorObject.Attractor):
+def update_screen(screen: pygame.display, movers: list, liquid: liquidObject.Liquid, attractors):
     """
     Updates the screen by visualizing all the objects in it.
 
@@ -24,9 +24,10 @@ def update_screen(screen: pygame.display, movers: list, liquid: liquidObject.Liq
         rect, color = liquid.get_draw_attributes()
         pygame.draw.rect(screen, color, rect)
 
-    if attractor:
-        rect, color = attractor.get_draw_attributes()
-        pygame.draw.rect(screen, color, rect)
+    if attractors != []:
+        for attractor in attractors:
+            rect, color = attractor.get_draw_attributes()
+            pygame.draw.rect(screen, color, rect)
 
     for mover in movers:
         rect, color = mover.get_draw_attributes()
@@ -168,9 +169,13 @@ def simulation2_main():
     num_movers = random.randint(1, 10)
     print(f"Created {num_movers} movers!")
     movers = []
+    attractors = []
     
-    attractor = attractorObject.Attractor(300, 200, (128, 128, 0), 30, 30, 100)
-    
+    attractor_1 = attractorObject.Attractor(500, 200, (255, 255, 0), 30, 30, 100)
+    attractor_2 = attractorObject.Attractor(100, 200, (255, 0, 255), 30, 30, 100)
+
+    attractors.append(attractor_1)
+    attractors.append(attractor_2)
     for _ in range(num_movers):
         size = random.randint(5, 20)
         h, w = size, size
@@ -182,7 +187,7 @@ def simulation2_main():
 
     screen.fill(BACKGROUND_COLOR)
 
-    update_screen(screen, movers, None, attractor)
+    update_screen(screen, movers, None, attractors)
 
     running = True
 
@@ -199,16 +204,17 @@ def simulation2_main():
             if mover.check_floor(HEIGHT) and abs(mover.velocity.y) < 0.1:
                 mover.velocity.y = 0
 
-            grav_force = attractor.attract(mover)
-            print(grav_force)
-            mover.apply_force(grav_force)
+            for attractor in attractors:
+                grav_force = attractor.attract(mover)
+                print(grav_force)
+                mover.apply_force(grav_force)
 
             mover.update_position()
 
             
 
         screen.fill(BACKGROUND_COLOR)
-        update_screen(screen, movers, None, attractor)
+        update_screen(screen, movers, None, attractors)
         
         # Update display
         pygame.display.update()
