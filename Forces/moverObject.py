@@ -123,6 +123,13 @@ class Mover():
     # GETTERS - just to test that you can actually do it
     # getters are not needed in python most of the times
     @property
+    def position(self):
+        """
+        Returns the mover's mass
+        """
+        return self.__position
+
+    @property
     def mass(self):
         """
         Returns the mover's mass
