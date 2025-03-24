@@ -103,10 +103,11 @@ class Mover():
         Returns the friction force.
         """
 
-        normal = 1  # Normal force
+        normal = self.mass
 
         # If velocity is very small, don't apply friction
-        if abs(self.__velocity.x) < 0.01:
+        if abs(self.__velocity.x) < 0.09:
+            self.__velocity.x = 0
             return pygame.Vector2(0, 0)
 
         friction_magnitude = self.friction_coef * normal

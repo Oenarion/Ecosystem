@@ -2,6 +2,7 @@ import pygame
 import random
 import moverObject
 import liquidObject
+import graphical_components as gc
 
 WIDTH = 640
 HEIGHT = 420
@@ -26,21 +27,80 @@ def update_screen(screen: pygame.display, movers: list, liquid: liquidObject.Liq
         pygame.draw.rect(screen, color, rect)
 
     
+def main_menu():
+    pygame.init()
+    screen = pygame.display.set_mode((WIDTH, HEIGHT))
+    pygame.display.set_caption("Forces Simulation")
+    clock = pygame.time.Clock()
+
+    # Create menu buttons
+    simulation1_button = gc.Button(WIDTH // 2 - 150, HEIGHT // 2 - 75, 300, 50, "Liquid Simulation")
+    simulation2_button = gc.Button(WIDTH // 2 - 150, HEIGHT // 2, 300, 50, "Gravitational Attraction")
+    exit_button = gc.Button(WIDTH // 2 - 150, HEIGHT // 2 + 75, 300, 50, "Exit")
+
+    # Options menu
+    
+    # show_options = False
+
+    running = True
+    while running:
+        screen.fill((0, 0, 0))
+
+        for event in pygame.event.get():
+            # exit
+            if event.type == pygame.QUIT:
+                return False 
+            
+            # # options
+            # if show_options:
+            #     options_result = simulation2_button.handle_event(event)
+            #     if options_result == "BACK":
+            #         show_options = False
+            # # main menu
+            # else:
+            simulation1_button.handle_event(event)
+            simulation2_button.handle_event(event)
+            exit_button.handle_event(event)
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if simulation1_button.is_hovered(event.pos):
+                    # Start the simulation with current max walkers setting from slider
+                    simulation1_main()
+                
+                if simulation2_button.is_hovered(event.pos):
+                    simulation2_main()
+                
+                if exit_button.is_hovered(event.pos):
+                    return False  # Exit application
+
+        # Draw menu or options
+        # if show_options:
+        #     options_menu.draw(screen)
+        # else:
+        #     # Draw menu buttons
+        simulation1_button.draw(screen)
+        simulation2_button.draw(screen)
+        exit_button.draw(screen)
+
+        pygame.display.update()
+        clock.tick(60)
 
 
-def main():
+
+def simulation1_main():
     pygame.init()
     clock = pygame.Clock()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
-    num_movers = 1
+    num_movers = random.randint(0, 10)
     #Creating walkers
     print(f"Created {num_movers} movers!")
     movers = []
     
     liquid = liquidObject.Liquid(0, 300, WIDTH, HEIGHT, (128, 128, 128))
     for i in range(num_movers):
-        h, w = 20, 20
+        size = random.randint(0, 50)
+        h, w = size, size
         x, y = random.randint(100, WIDTH - 100), 100
         mass = random.randint(1, 5)
         rand_color = (random.randint(0,255), random.randint(0,255), random.randint(0,255))
@@ -66,23 +126,26 @@ def main():
             if event.type == pygame.QUIT:
                 running = False # Quit simulation
 
-        # wind blows if users clicks on the screen
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            is_wind_blowing = True
-        if event.type == pygame.MOUSEBUTTONUP:
-            is_wind_blowing = False
+            # wind blows if users clicks on the screen
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                is_wind_blowing = True
+            if event.type == pygame.MOUSEBUTTONUP:
+                is_wind_blowing = False
 
         # movers are now subject to gravity
         for i, mover in enumerate(movers):
 
-            if mover.check_floor(HEIGHT) and abs(mover.velocity.y) < 0.01:
+            if mover.check_floor(HEIGHT) and abs(mover.velocity.y) < 0.1:
                 mover.velocity.y = 0
 
             if liquid.contains_object(mover.rect) and abs(mover.velocity.y) > 0.01:
-                print(mover.velocity.y)
-                drag_force = liquid.compute_drag_force(mover.velocity)
-                print(f"DRAG FORCE: {drag_force}")
-                mover.apply_force(drag_force)
+                drag_force = liquid.compute_drag_force(mover.velocity, mover.w)
+                # add a limit so that the item doesn't bounce off the liquid.
+                if drag_force.magnitude_squared() > mover.velocity.magnitude_squared():
+                    limit_drag_force = pygame.Vector2(0, - mover.velocity.y + 0.1) 
+                    mover.apply_force(limit_drag_force)
+                else:
+                    mover.apply_force(drag_force)
 
             # scale the gravity by the mover's mass
             mover.apply_force(gravity * mover.mass)
@@ -90,9 +153,11 @@ def main():
             if is_wind_blowing:
                 mover.apply_force(wind)
 
-            if mover.check_floor(HEIGHT) and abs(mover.velocity.x) > 0.01:
+            if mover.check_floor(HEIGHT) and abs(mover.velocity.x) > 0.1:
                 friction = mover.compute_friction()
                 mover.apply_force(friction)
+            #     print(f"Friction: {friction}")
+            # print(f"Mover's velocity: {mover.velocity}")
 
             
             mover.update_position()
@@ -108,5 +173,9 @@ def main():
         pygame.display.update()
         clock.tick(60)
 
+
+def simulation2_main():
+    ...
+
 if __name__ == "__main__":
-    main()
+    main_menu()

@@ -19,22 +19,24 @@ class Liquid():
     
         return False
     
-    def compute_drag_force(self, velocity: pygame.Vector2):
+    def compute_drag_force(self, velocity: pygame.Vector2, sur_area: int):
         """
         Computes the drag force for the given object.
 
         Args:
             - velocity -> velocity vector of the object.
+            - sur_area -> surface area of the object.
 
         Returns the drag force.
         """
+
         speed = velocity.magnitude_squared()
-        drag_magnitude = speed * self.c
+        drag_magnitude = speed * self.c * sur_area
         drag_force = velocity.copy()
         drag_force.normalize_ip()
         drag_force *= -1
         drag_force *= drag_magnitude
-
+        
         return drag_force
     
     def get_draw_attributes(self):
