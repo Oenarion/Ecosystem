@@ -9,7 +9,7 @@ WIDTH = 640
 HEIGHT = 420
 BACKGROUND_COLOR = (0, 0, 0) # black
 
-MAX_MOVERS = 10
+MAX_MOVERS = 20
 
 def update_screen(screen: pygame.display, movers: list, liquid: liquidObject.Liquid, attractors):
     """
@@ -28,22 +28,62 @@ def update_screen(screen: pygame.display, movers: list, liquid: liquidObject.Liq
         for attractor in attractors:
             radius, position, color = attractor.get_draw_attributes()
             pygame.draw.circle(screen, color, (position.x, position.y), radius)
+            pygame.draw.circle(screen, (255, 255, 255), (position.x, position.y), 5)
 
     for mover in movers:
         radius, position, rect, color = mover.get_draw_attributes()
-        
-        pygame.draw.rect(screen, color, rect)
-        pygame.draw.circle(screen, (0,0,0), (position.x, position.y), radius)
+        pygame.draw.circle(screen, color, (position.x, position.y), radius)
 
+
+def out_of_bounds(mover):
+    """
+    Checks if the mover is out of bounds.
+
+    Returns a boolean.
+    """
+    if mover.position.x < -20 or mover.position.x > WIDTH + 20 \
+        or mover.position.y < -20 or mover.position.y > HEIGHT + 20:
+            return True
+
+    return False
+
+def create_new_mover():
+    """
+    Creates new mover object with random values initialization.
+
+    Returns the new mover.
+    """
+    mov_radius = random.randint(2, 10)
+    mov_x, mov_y = random.choice([10, WIDTH - 10]), random.choice([10, HEIGHT - 10])
+    mov_mass = mov_radius * 2
+    mov_rand_color = (random.randint(0,255), random.randint(0,255), random.randint(0,255))
+    curr_mover = moverObject.Mover(mov_x, mov_y, mov_rand_color, mov_radius, mass=mov_mass)
+    return curr_mover
     
+def create_new_attractor():
+    """
+    Creates new attractor with random values initialization.
+
+    Returns the new attractor.
+    """
+    att_x, att_y = random.randint(100, WIDTH - 100), random.randint(100, HEIGHT - 100)
+    att_color = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
+    att_radius = random.randint(10, 20)
+    att_mass = random.randint(40, 150)
+    new_attractor = attractorObject.Attractor(att_x, att_y, att_color, att_radius, att_mass)
+    return new_attractor
+
+
+
 def main_menu():
     pygame.init()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     pygame.display.set_caption("Forces Simulation")
     clock = pygame.time.Clock()
 
-    simulation1_button = gc.Button(WIDTH // 2 - 150, HEIGHT // 2 - 75, 300, 50, "Liquid Simulation")
-    simulation2_button = gc.Button(WIDTH // 2 - 150, HEIGHT // 2, 300, 50, "Gravitational Attraction")
+    simulation1_button = gc.Button(WIDTH // 2 - 150, HEIGHT // 2 - 150, 300, 50, "Liquid Simulation")
+    simulation2_button = gc.Button(WIDTH // 2 - 150, HEIGHT // 2 - 75, 300, 50, "Gravitational Attraction")
+    simulation3_button = gc.Button(WIDTH // 2 - 150, HEIGHT // 2, 300, 50, "N-body problem")
     exit_button = gc.Button(WIDTH // 2 - 150, HEIGHT // 2 + 75, 300, 50, "Exit")
 
     running = True
@@ -57,6 +97,7 @@ def main_menu():
 
             simulation1_button.handle_event(event)
             simulation2_button.handle_event(event)
+            simulation3_button.handle_event(event)
             exit_button.handle_event(event)
 
             if event.type == pygame.MOUSEBUTTONDOWN:
@@ -65,12 +106,16 @@ def main_menu():
                 
                 if simulation2_button.is_hovered(event.pos):
                     simulation2_main()
+
+                if simulation3_button.is_hovered(event.pos):
+                    simulation3_main()
                 
                 if exit_button.is_hovered(event.pos):
                     return False  # Exit application
                 
         simulation1_button.draw(screen)
         simulation2_button.draw(screen)
+        simulation3_button.draw(screen)
         exit_button.draw(screen)
 
         pygame.display.update()
@@ -82,7 +127,7 @@ def simulation1_main():
     clock = pygame.Clock()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
-    num_movers = 1
+    num_movers = random.randint(1, 10)
     print(f"Created {num_movers} movers!")
     movers = []
     
@@ -161,7 +206,6 @@ def simulation1_main():
         pygame.display.update()
         clock.tick(60)
 
-
 def simulation2_main():
     pygame.init()
     clock = pygame.Clock()
@@ -170,15 +214,13 @@ def simulation2_main():
     num_movers = random.randint(5, 20)
     print(f"Created {num_movers} movers!")
     movers = []
-    attractors = []
     
-    attractor_1 = attractorObject.Attractor(500, 200, (255, 255, 0), 15, 150)
+    
+    attractor_1 = attractorObject.Attractor(500, 200, (255, 0, 0), 15, 150)
     attractor_2 = attractorObject.Attractor(100, 200, (255, 0, 255), 15, 150)
     attractor_3 = attractorObject.Attractor(300, 200, (0, 255, 255), 15, 150)
 
-    attractors.append(attractor_1)
-    attractors.append(attractor_2)
-    attractors.append(attractor_3)
+    attractors = [attractor_1, attractor_2, attractor_3]
 
     for _ in range(num_movers):
         radius = random.randint(2, 10)
@@ -203,22 +245,69 @@ def simulation2_main():
 
         # movers are now subject to gravity
         for i, mover in enumerate(movers):
+            
+            if out_of_bounds(mover):
+                print("Mover went in the outer space and was never found again!")
+                movers.pop(i)
 
             if mover.check_floor(HEIGHT) and abs(mover.velocity.y) < 0.1:
                 mover.velocity.y = 0
 
             for i, attractor in enumerate(attractors):
                 grav_force = attractor.attract(mover)
-                distance = (attractor.position - mover.position).magnitude()
-                print(f"ATTRACTOR {i}: Distance = {distance}, Force = {grav_force.magnitude()}")
+                # distance = (attractor.position - mover.position).magnitude()
+                # print(f"ATTRACTOR {i}: Distance = {distance}, Force = {grav_force.magnitude()}")
                 mover.apply_force(grav_force)
 
             mover.update_position()
 
-            
+        create_chance = random.randint(0, 1000)
+        
+        if create_chance > 999:
+            remove_or_add = random.randint(0, 1)
+            # 1 == True, remove a random attractor
+            if remove_or_add and len(attractors) > 1:
+                attractors.pop(random.randint(0, len(attractors) - 1))
+                print("Attractor ended it's fuel and died :c")
+            # 0 == False, add an attractor
+            else:
+                new_attractor = create_new_attractor()
+                attractors.append(new_attractor)
+                print("New attractor!!")
+
+        if create_chance < 1 and len(movers) < MAX_MOVERS:
+            new_mover = create_new_mover()
+            print("New mover from outer space!")
+            movers.append(new_mover)
+
 
         screen.fill(BACKGROUND_COLOR)
         update_screen(screen, movers, None, attractors)
+        
+        # Update display
+        pygame.display.update()
+        clock.tick(60)
+
+def simulation3_main():
+    pygame.init()
+    clock = pygame.Clock()
+    screen = pygame.display.set_mode((WIDTH, HEIGHT))
+
+    screen.fill(BACKGROUND_COLOR)
+
+    #update_screen(screen, movers, None, attractors)
+
+    running = True
+
+    pygame.display.set_caption("n-body Simulation")
+    while running:
+        # Handle events
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False # Quit simulation
+
+        screen.fill(BACKGROUND_COLOR)
+        #update_screen(screen, movers, None, attractors)
         
         # Update display
         pygame.display.update()
