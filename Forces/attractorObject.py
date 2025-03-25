@@ -26,10 +26,10 @@ class Attractor():
         distance = force.magnitude()
 
         # add a limit to the distance so that the force is never too weak or too strong.
-        # the distance is now between 20 and 40
+        # the distance is now between 20 and 500
         # the higher the numbers the lower the power of the force
 
-        distance = max(20, min(distance, 40))
+        distance = max(20, min(distance, 500))
 
         magnitude = (self.G * mover.mass * self.mass) / distance**2
 

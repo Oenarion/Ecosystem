@@ -166,21 +166,24 @@ def simulation2_main():
     clock = pygame.Clock()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
-    num_movers = random.randint(1, 10)
+    num_movers = random.randint(5, 20)
     print(f"Created {num_movers} movers!")
     movers = []
     attractors = []
     
-    attractor_1 = attractorObject.Attractor(500, 200, (255, 255, 0), 30, 30, 100)
-    attractor_2 = attractorObject.Attractor(100, 200, (255, 0, 255), 30, 30, 100)
+    attractor_1 = attractorObject.Attractor(500, 200, (255, 255, 0), 30, 30, 150)
+    attractor_2 = attractorObject.Attractor(100, 200, (255, 0, 255), 30, 30, 150)
+    attractor_3 = attractorObject.Attractor(300, 200, (0, 255, 255), 30, 30, 150)
 
     attractors.append(attractor_1)
     attractors.append(attractor_2)
+    attractors.append(attractor_3)
+
     for _ in range(num_movers):
         size = random.randint(5, 20)
         h, w = size, size
-        x, y = random.randint(100, WIDTH - 100), 100
-        mass = random.randint(30, 50)
+        x, y = random.randint(100, WIDTH - 100), random.randint(100, HEIGHT - 100)
+        mass = size * 2
         rand_color = (random.randint(0,255), random.randint(0,255), random.randint(0,255))
         curr_mover = moverObject.Mover(x, y, rand_color, h, w, mass=mass)
         movers.append(curr_mover)
@@ -204,9 +207,10 @@ def simulation2_main():
             if mover.check_floor(HEIGHT) and abs(mover.velocity.y) < 0.1:
                 mover.velocity.y = 0
 
-            for attractor in attractors:
+            for i, attractor in enumerate(attractors):
                 grav_force = attractor.attract(mover)
-                print(grav_force)
+                distance = (attractor.position - mover.position).magnitude()
+                print(f"ATTRACTOR {i}: Distance = {distance}, Force = {grav_force.magnitude()}")
                 mover.apply_force(grav_force)
 
             mover.update_position()
