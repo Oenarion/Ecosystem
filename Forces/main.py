@@ -24,14 +24,16 @@ def update_screen(screen: pygame.display, movers: list, liquid: liquidObject.Liq
         rect, color = liquid.get_draw_attributes()
         pygame.draw.rect(screen, color, rect)
 
-    if attractors != []:
+    if attractors is not None and attractors != []:
         for attractor in attractors:
-            rect, color = attractor.get_draw_attributes()
-            pygame.draw.rect(screen, color, rect)
+            radius, position, color = attractor.get_draw_attributes()
+            pygame.draw.circle(screen, color, (position.x, position.y), radius)
 
     for mover in movers:
-        rect, color = mover.get_draw_attributes()
+        radius, position, rect, color = mover.get_draw_attributes()
+        
         pygame.draw.rect(screen, color, rect)
+        pygame.draw.circle(screen, (0,0,0), (position.x, position.y), radius)
 
     
 def main_menu():
@@ -80,20 +82,19 @@ def simulation1_main():
     clock = pygame.Clock()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
-    num_movers = random.randint(0, 10)
+    num_movers = 1
     print(f"Created {num_movers} movers!")
     movers = []
     
     liquid = liquidObject.Liquid(0, 300, WIDTH, HEIGHT, (128, 128, 128))
     for i in range(num_movers):
-        size = random.randint(10, 50)
-        h, w = size, size
+        radius = random.randint(5, 20)
         x, y = random.randint(100, WIDTH - 100), 100
         mass = random.randint(1, 5)
         rand_color = (random.randint(0,255), random.randint(0,255), random.randint(0,255))
-        friction_coef = random.uniform(0,1)
+        friction_coef = random.uniform(0,0.5)
         print(f"Friction coef of mover {i} is: {friction_coef}")
-        curr_mover = moverObject.Mover(x, y, rand_color, h, w, mass=mass, friction_coef=friction_coef)
+        curr_mover = moverObject.Mover(x, y, rand_color, radius, mass=mass, friction_coef=friction_coef)
         movers.append(curr_mover)
 
     screen.fill(BACKGROUND_COLOR)
@@ -106,7 +107,7 @@ def simulation1_main():
     wind = pygame.Vector2(0.5, 0)
     is_wind_blowing = False
 
-    pygame.display.set_caption("Forces Simulation")
+    pygame.display.set_caption("Liquid Simulation")
     while running:
         # Handle events
         for event in pygame.event.get():
@@ -124,27 +125,27 @@ def simulation1_main():
 
             if mover.check_floor(HEIGHT) and abs(mover.velocity.y) < 0.1:
                 mover.velocity.y = 0
+            else:
+                # scale the gravity by the mover's mass
+                mover.apply_force(gravity * mover.mass)
 
             if liquid.contains_object(mover.rect) and abs(mover.velocity.y) > 0.01:
-                drag_force = liquid.compute_drag_force(mover.velocity, mover.w)
+                drag_force = liquid.compute_drag_force(mover.velocity, mover.radius)
                 # add a limit so that the item doesn't bounce off the liquid.
                 if drag_force.magnitude_squared() > mover.velocity.magnitude_squared():
-                    limit_drag_force = pygame.Vector2(0, - mover.velocity.y + 0.1) 
+                    limit_drag_force = pygame.Vector2(0, - mover.velocity.y + 0.3) 
                     mover.apply_force(limit_drag_force)
                 else:
                     mover.apply_force(drag_force)
 
-            # scale the gravity by the mover's mass
-            mover.apply_force(gravity * mover.mass)
-
             if is_wind_blowing:
                 mover.apply_force(wind)
 
-            if mover.check_floor(HEIGHT) and abs(mover.velocity.x) > 0.1:
+            if mover.check_floor(HEIGHT):
                 friction = mover.compute_friction()
                 mover.apply_force(friction)
             #     print(f"Friction: {friction}")
-            # print(f"Mover's velocity: {mover.velocity}")
+            print(f"Mover's velocity: {mover.velocity}")
 
             
             mover.update_position()
@@ -171,21 +172,20 @@ def simulation2_main():
     movers = []
     attractors = []
     
-    attractor_1 = attractorObject.Attractor(500, 200, (255, 255, 0), 30, 30, 150)
-    attractor_2 = attractorObject.Attractor(100, 200, (255, 0, 255), 30, 30, 150)
-    attractor_3 = attractorObject.Attractor(300, 200, (0, 255, 255), 30, 30, 150)
+    attractor_1 = attractorObject.Attractor(500, 200, (255, 255, 0), 15, 150)
+    attractor_2 = attractorObject.Attractor(100, 200, (255, 0, 255), 15, 150)
+    attractor_3 = attractorObject.Attractor(300, 200, (0, 255, 255), 15, 150)
 
     attractors.append(attractor_1)
     attractors.append(attractor_2)
     attractors.append(attractor_3)
 
     for _ in range(num_movers):
-        size = random.randint(5, 20)
-        h, w = size, size
+        radius = random.randint(2, 10)
         x, y = random.randint(100, WIDTH - 100), random.randint(100, HEIGHT - 100)
-        mass = size * 2
+        mass = radius * 2
         rand_color = (random.randint(0,255), random.randint(0,255), random.randint(0,255))
-        curr_mover = moverObject.Mover(x, y, rand_color, h, w, mass=mass)
+        curr_mover = moverObject.Mover(x, y, rand_color, radius, mass=mass)
         movers.append(curr_mover)
 
     screen.fill(BACKGROUND_COLOR)
@@ -194,7 +194,7 @@ def simulation2_main():
 
     running = True
 
-    pygame.display.set_caption("Forces Simulation")
+    pygame.display.set_caption("Gravitational Force Simulation")
     while running:
         # Handle events
         for event in pygame.event.get():

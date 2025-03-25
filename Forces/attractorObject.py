@@ -2,13 +2,13 @@ import pygame
 import moverObject
 
 class Attractor():
-    def __init__(self, x: int, y: int, color: tuple, h: int, w: int, mass = 1):
+    def __init__(self, x: int, y: int, color: tuple, radius: int, mass = 1):
 
         self.G = 1
         self.mass = mass        
         self.color = color
         self.position = pygame.Vector2(x, y)
-        self.attractor_rect = pygame.Rect(x, y, w, h)
+        self.radius = radius 
 
     def attract(self, mover: moverObject.Mover) -> pygame.Vector2:
         """
@@ -42,4 +42,4 @@ class Attractor():
         """
         Returns attributes for drawing, i.e. rect and color
         """
-        return [self.attractor_rect, self.color]
+        return [self.radius, self.position, self.color]

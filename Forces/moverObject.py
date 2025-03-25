@@ -1,16 +1,14 @@
 import pygame
 
 class Mover():
-    def __init__(self, x: int, y: int, color: tuple, h: int, w: int, elastiticy = -0.9, friction_coef = 0.7,
+    def __init__(self, x: int, y: int, color: tuple, radius: int, elastiticy = -0.9, friction_coef = 0.7,
                  mass = 1, velocity = None, acceleration = None):
         
         
         self.color = color
-        self.h = h
-        self.w = w
-        self.rect = pygame.Rect(x, y, w, h)
+        self.radius = radius
         self.__mass = mass
-
+        self.rect = pygame.Rect(x - radius, y - radius, self.radius*2, self.radius*2)
 
         self.__elastiticy = elastiticy
         self.friction_coef = friction_coef
@@ -38,7 +36,7 @@ class Mover():
         self.__velocity += self.acceleration
         self.__position += self.velocity
         self.__acceleration *= 0 
-        self.rect = pygame.Rect(self.__position.x, self.__position.y, self.w, self.h)
+        self.rect = pygame.Rect(self.__position.x - self.radius, self.__position.y - self.radius, self.radius*2, self.radius*2)
 
 
     def check_edges(self, WIDTH: int, HEIGHT: int) -> None:
@@ -51,8 +49,8 @@ class Mover():
             - HEIGHT -> height of the canvas
         """
 
-        if self.__position.x > (WIDTH - self.w):
-            self.__position.x = WIDTH - self.w
+        if self.__position.x > (WIDTH - self.radius):
+            self.__position.x = WIDTH - self.radius
             self.__velocity.x *= self.__elastiticy  
         elif self.__position.x < 0:
             self.__position.x = 0
@@ -61,8 +59,8 @@ class Mover():
         if self.__position.y < 0:
             self.__position.y = 0
             self.__velocity.y *= self.__elastiticy  
-        elif self.__position.y > (HEIGHT - self.h):
-            self.__position.y = HEIGHT - self.h
+        elif self.__position.y > (HEIGHT - self.radius):
+            self.__position.y = HEIGHT - self.radius
             self.__velocity.y *= self.__elastiticy
         
         
@@ -75,7 +73,7 @@ class Mover():
 
         Returns True if floor is hit, False otherwise
         """
-        if self.__position.y >= (HEIGHT - self.h):
+        if self.__position.y >= (HEIGHT - self.radius):
             return True 
         return False
 
@@ -83,14 +81,14 @@ class Mover():
         """
         Returns position and color of object, used mainly to draw the walker at each iteration.
         """
-        return [self.__position, self.__velocity, self.__acceleration, self.color, self.h, self.w] 
+        return [self.__position, self.__velocity, self.__acceleration, self.color, self.radius] 
 
     def get_draw_attributes(self):
         """
         Returns attributes for drawing, i.e. rect and color
         """
 
-        return [self.rect, self.color]
+        return [self.radius, self.__position, self.rect, self.color]
 
     def compute_friction(self):
         """
@@ -102,18 +100,23 @@ class Mover():
 
         Returns the friction force.
         """
-
         normal = self.mass
 
         # If velocity is very small, don't apply friction
-        if abs(self.__velocity.x) < 0.09:
+        if abs(self.__velocity.x) < 0.05:
             self.__velocity.x = 0
             return pygame.Vector2(0, 0)
 
-        friction_magnitude = self.friction_coef * normal
-        friction_vector = pygame.Vector2(-1 * self.__velocity.x, 0)  # Only in y direction
+        # Apply a small damping factor when the velocity is very small
+        if abs(self.__velocity.x) < 0.1:
+            print("reducing friction coef")
+            self.friction_coef = self.friction_coef * 0.5  # Reduce friction when moving slowly
 
-        # Normalize and scale
+        # Calculate friction magnitude
+        friction_magnitude = self.friction_coef * normal
+
+        # Apply friction in the opposite direction of velocity
+        friction_vector = pygame.Vector2(-1 * self.__velocity.x, 0)  # Only in x direction
         friction_vector.normalize_ip()
         friction_vector *= friction_magnitude
         
