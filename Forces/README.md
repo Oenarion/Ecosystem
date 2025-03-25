@@ -29,7 +29,7 @@ TO DO:
   
   - In the gravitational simulation:
     - [ ] Instead of deleting an attractor right away, let's delete by slowly shrinking it, like it's losing all of its energy.
-    - [ ] The spawning of new attractors and new movers must be without any collision, so no mover could spawn inside another attractor or attractors inside other attractors.
+    - [x] The spawning of new attractors and new movers must be without any collision, so no mover could spawn inside another attractor or attractors inside other attractors.
     
   - N-body problem:
     - [ ] Create the simulation.  
