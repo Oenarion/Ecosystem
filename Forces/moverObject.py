@@ -8,7 +8,7 @@ class Mover():
         self.color = color
         self.radius = radius
         self.__mass = mass
-        self.rect = pygame.Rect(x - radius, y - radius, self.radius*2, self.radius*2)
+        self.rect = pygame.Rect(x - radius, y - radius, radius*2, radius*2)
 
         self.__elastiticy = elastiticy
         self.friction_coef = friction_coef

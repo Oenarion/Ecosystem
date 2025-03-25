@@ -28,7 +28,7 @@ def update_screen(screen: pygame.display, movers: list, liquid: liquidObject.Liq
         for attractor in attractors:
             radius, position, color = attractor.get_draw_attributes()
             pygame.draw.circle(screen, color, (position.x, position.y), radius)
-            pygame.draw.circle(screen, (255, 255, 255), (position.x, position.y), 5)
+            pygame.draw.circle(screen, (255, 255, 255), (position.x, position.y), radius - 5)
 
     for mover in movers:
         radius, position, rect, color = mover.get_draw_attributes()
@@ -47,32 +47,75 @@ def out_of_bounds(mover):
 
     return False
 
-def create_new_mover():
+def create_new_mover(attractors):
     """
-    Creates new mover object with random values initialization.
+    Creates new mover object with random values initialization, if the mover overlaps for more than
+    20 times with an existing attractor the object won't be created.
 
     Returns the new mover.
     """
-    mov_radius = random.randint(2, 10)
-    mov_x, mov_y = random.choice([10, WIDTH - 10]), random.choice([10, HEIGHT - 10])
-    mov_mass = mov_radius * 2
-    mov_rand_color = (random.randint(0,255), random.randint(0,255), random.randint(0,255))
-    curr_mover = moverObject.Mover(mov_x, mov_y, mov_rand_color, mov_radius, mass=mov_mass)
+    overlap = True
+    counter = 0
+
+    while overlap:
+        mov_radius = random.randint(2, 10)
+        mov_x, mov_y = random.choice([10, WIDTH - 10]), random.choice([10, HEIGHT - 10])
+        mov_mass = mov_radius * 2
+        mov_rand_color = (random.randint(0,255), random.randint(0,255), random.randint(0,255))
+        mov_rect = pygame.Rect(mov_x - mov_radius, mov_y - mov_radius, mov_radius*2, mov_radius*2)  
+        if check_spawn_collision(mov_rect, attractors):
+            curr_mover = moverObject.Mover(mov_x, mov_y, mov_rand_color, mov_radius, mass=mov_mass)
+            overlap = False
+        counter += 1
+        
+        if counter > 20:
+            print("Couldn't create a suitable position for the mover")
+            return None
+        
     return curr_mover
     
-def create_new_attractor():
+def create_new_attractor(attractors):
     """
-    Creates new attractor with random values initialization.
+    Creates new attractor with random values initialization, if the attractor overlaps for more than
+    20 times with an existing attractor the object won't be created.
 
     Returns the new attractor.
     """
-    att_x, att_y = random.randint(100, WIDTH - 100), random.randint(100, HEIGHT - 100)
-    att_color = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
-    att_radius = random.randint(10, 20)
-    att_mass = random.randint(40, 150)
-    new_attractor = attractorObject.Attractor(att_x, att_y, att_color, att_radius, att_mass)
+    overlap = True
+    counter = 0
+
+    while overlap:
+        att_x, att_y = random.randint(100, WIDTH - 100), random.randint(100, HEIGHT - 100)
+        att_color = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
+        att_radius = random.randint(10, 20)
+        att_mass = random.randint(40, 150)
+        att_rect = pygame.Rect(att_x - att_radius, att_y - att_radius, att_radius*2, att_radius*2)  
+        if check_spawn_collision(att_rect, attractors):
+            new_attractor = attractorObject.Attractor(att_x, att_y, att_color, att_radius, att_mass)
+            overlap = False
+        
+        counter += 1
+        if counter > 20:
+            print("Couldn't create a suitable position for the mover")
+            return None
+        
     return new_attractor
 
+def check_spawn_collision(new_obj: pygame.Rect, attractors: list[attractorObject.Attractor]):
+    """
+    Checks whether the new object collides with any of the new attractor present in the simulation.
+
+    Args:
+        - new_obj -> rect of the mover or the attractor to be created.
+        - attractors -> array of attractors objects.
+
+    Returns a boolean.
+    """
+    for attractor in attractors:
+        if new_obj.colliderect(attractor):
+            return False
+
+    return True
 
 
 def main_menu():
@@ -271,14 +314,16 @@ def simulation2_main():
                 print("Attractor ended it's fuel and died :c")
             # 0 == False, add an attractor
             else:
-                new_attractor = create_new_attractor()
-                attractors.append(new_attractor)
-                print("New attractor!!")
+                new_attractor = create_new_attractor(attractors)
+                if new_attractor is not None:
+                    attractors.append(new_attractor)
+                    print("New attractor!!")
 
         if create_chance < 1 and len(movers) < MAX_MOVERS:
-            new_mover = create_new_mover()
-            print("New mover from outer space!")
-            movers.append(new_mover)
+            new_mover = create_new_mover(attractors)
+            if new_mover is not None:
+                print("New mover from outer space!")
+                movers.append(new_mover)
 
 
         screen.fill(BACKGROUND_COLOR)

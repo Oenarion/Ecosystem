@@ -8,6 +8,7 @@ class Attractor():
         self.mass = mass        
         self.color = color
         self.position = pygame.Vector2(x, y)
+        self.rect = pygame.Rect(x - radius, y - radius, radius*2, radius*2)
         self.radius = radius 
 
     def attract(self, mover: moverObject.Mover) -> pygame.Vector2:
