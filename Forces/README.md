@@ -28,7 +28,7 @@ TO DO:
     - [ ] Gravity force pulling the  objects to the mouse position.
   
   - In the gravitational simulation:
-    - [ ] Instead of deleting an attractor right away, let's delete by slowly shrinking it, like it's losing all of its energy.
+    - [x] Instead of deleting an attractor right away, let's delete by slowly shrinking it, like it's losing all of its energy.
     - [x] The spawning of new attractors and new movers must be without any collision, so no mover could spawn inside another attractor or attractors inside other attractors.
     
   - N-body problem:
