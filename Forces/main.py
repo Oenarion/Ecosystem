@@ -28,7 +28,8 @@ def update_screen(screen: pygame.display, movers: list, liquid: liquidObject.Liq
         for attractor in attractors:
             radius, position, color = attractor.get_draw_attributes()
             pygame.draw.circle(screen, color, (position.x, position.y), radius)
-            pygame.draw.circle(screen, (255, 255, 255), (position.x, position.y), radius - 5)
+            if radius > 5:
+                pygame.draw.circle(screen, (255, 255, 255), (position.x, position.y), radius - 5)
 
     for mover in movers:
         radius, position, rect, color = mover.get_draw_attributes()
@@ -296,30 +297,42 @@ def simulation2_main():
             if mover.check_floor(HEIGHT) and abs(mover.velocity.y) < 0.1:
                 mover.velocity.y = 0
 
+            idx_to_remove = []
             for i, attractor in enumerate(attractors):
                 grav_force = attractor.attract(mover)
                 # distance = (attractor.position - mover.position).magnitude()
                 # print(f"ATTRACTOR {i}: Distance = {distance}, Force = {grav_force.magnitude()}")
                 mover.apply_force(grav_force)
 
+                attractor.check_spawn_update()
+                is_dead = attractor.check_death_update()
+                if is_dead:
+                    idx_to_remove.append(i)
+
+            for idx in idx_to_remove:
+                attractors.pop(idx)
+
             mover.update_position()
 
         create_chance = random.randint(0, 1000)
         
-        if create_chance > 999:
+        if create_chance > 998:
             remove_or_add = random.randint(0, 1)
             # 1 == True, remove a random attractor
             if remove_or_add and len(attractors) > 1:
-                attractors.pop(random.randint(0, len(attractors) - 1))
-                print("Attractor ended it's fuel and died :c")
+                idx = random.randint(0, len(attractors) - 1)
+                attractors[idx].death_of_attractor()
+                print("Attractor started death timer!")
             # 0 == False, add an attractor
             else:
                 new_attractor = create_new_attractor(attractors)
+                new_attractor.birth_of_attractor()
+                new_attractor.check_spawn_update()
                 if new_attractor is not None:
                     attractors.append(new_attractor)
                     print("New attractor!!")
 
-        if create_chance < 1 and len(movers) < MAX_MOVERS:
+        if create_chance < 10 and len(movers) < MAX_MOVERS:
             new_mover = create_new_mover(attractors)
             if new_mover is not None:
                 print("New mover from outer space!")
