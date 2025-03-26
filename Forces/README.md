@@ -34,4 +34,5 @@ TO DO:
     - [ ] Add space like background to beautify.
     
   - N-body problem:
-    - [ ] Create the simulation.  
+    - [x] Create the simulation.
+    - [ ] add spawn of new bodies and maybe also some attractors/movers just for the lols.  
