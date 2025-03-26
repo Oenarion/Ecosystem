@@ -10,6 +10,7 @@ HEIGHT = 420
 BACKGROUND_COLOR = (0, 0, 0) # black
 
 MAX_MOVERS = 20
+MAX_ATTRACTORS = 15
 
 def update_screen(screen: pygame.display, movers: list, liquid: liquidObject.Liquid, attractors):
     """
@@ -325,12 +326,13 @@ def simulation2_main():
                 print("Attractor started death timer!")
             # 0 == False, add an attractor
             else:
-                new_attractor = create_new_attractor(attractors)
-                new_attractor.birth_of_attractor()
-                new_attractor.check_spawn_update()
-                if new_attractor is not None:
-                    attractors.append(new_attractor)
-                    print("New attractor!!")
+                if len(attractors) < MAX_ATTRACTORS:
+                    new_attractor = create_new_attractor(attractors)
+                    new_attractor.birth_of_attractor()
+                    new_attractor.check_spawn_update()
+                    if new_attractor is not None:
+                        attractors.append(new_attractor)
+                        print("New attractor!!")
 
         if create_chance < 10 and len(movers) < MAX_MOVERS:
             new_mover = create_new_mover(attractors)
