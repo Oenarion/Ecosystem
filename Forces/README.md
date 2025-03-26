@@ -22,14 +22,16 @@ Still under construction...
 
 TO DO:
   - Liquid simulation:
-    - [ ] Try adding different liquids and different densities (maybe some liquid keeps the object on the surface).
+    - [ ] Try adding different liquids and different densities (maybe some liquid keeps the object on the surface) and also give them a specific color (water blue, oil yellow, etc).
     - [ ] Modify the wind force such that it moves the object away from the mouse position (i.e. if the object is to the right of the mouse it will be moved to the right).
     - [ ] New type of gravity force which forces the object down if the liquid keeps pulling it up.
     - [ ] Gravity force pulling the  objects to the mouse position.
-  
+    - [ ] Add a tab menu to explain how to use the forces.
+    
   - In the gravitational simulation:
     - [x] Instead of deleting an attractor right away, let's delete by slowly shrinking it, like it's losing all of its energy.
     - [x] The spawning of new attractors and new movers must be without any collision, so no mover could spawn inside another attractor or attractors inside other attractors.
+    - [ ] Add space like background to beautify.
     
   - N-body problem:
     - [ ] Create the simulation.  
