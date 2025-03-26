@@ -3,6 +3,7 @@ import random
 import moverObject
 import liquidObject
 import attractorObject
+import bodyObject
 import graphical_components as gc
 
 WIDTH = 640
@@ -12,7 +13,7 @@ BACKGROUND_COLOR = (0, 0, 0) # black
 MAX_MOVERS = 20
 MAX_ATTRACTORS = 15
 
-def update_screen(screen: pygame.display, movers: list, liquid: liquidObject.Liquid, attractors):
+def update_screen(screen: pygame.display, movers: list, liquid: liquidObject.Liquid, attractors: attractorObject.Attractor):
     """
     Updates the screen by visualizing all the objects in it.
 
@@ -33,7 +34,7 @@ def update_screen(screen: pygame.display, movers: list, liquid: liquidObject.Liq
                 pygame.draw.circle(screen, (255, 255, 255), (position.x, position.y), radius - 5)
 
     for mover in movers:
-        radius, position, rect, color = mover.get_draw_attributes()
+        radius, position, _, color = mover.get_draw_attributes()
         pygame.draw.circle(screen, color, (position.x, position.y), radius)
 
 
@@ -355,7 +356,21 @@ def simulation3_main():
 
     screen.fill(BACKGROUND_COLOR)
 
-    #update_screen(screen, movers, None, attractors)
+    bodies = []
+
+    num_bodies = random.randint(5, 20)
+
+    for _ in range(num_bodies):
+        radius = random.randint(2, 10)
+        x, y = random.randint(100, WIDTH - 100), random.randint(100, HEIGHT - 100)
+        mass = radius * 2
+        rand_color = (random.randint(0,255), random.randint(0,255), random.randint(0,255))
+        curr_body = bodyObject.Body(x, y, rand_color, radius, mass=mass)
+        bodies.append(curr_body)
+
+    screen.fill(BACKGROUND_COLOR)
+
+    update_screen(screen, bodies, None, None)
 
     running = True
 
@@ -367,8 +382,19 @@ def simulation3_main():
                 running = False # Quit simulation
 
         screen.fill(BACKGROUND_COLOR)
-        #update_screen(screen, movers, None, attractors)
         
+        for i, body in enumerate(bodies):
+            for j, other_body in enumerate(bodies):
+                if i != j:
+                    grav_force = other_body.attract(body)
+                    body.apply_force(grav_force)
+            body.update_position()
+
+            if out_of_bounds(body):
+                print("Body went out of bounds :c")
+                bodies.pop(i)
+        
+        update_screen(screen, bodies, None, None)
         # Update display
         pygame.display.update()
         clock.tick(60)
