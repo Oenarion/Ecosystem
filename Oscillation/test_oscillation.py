@@ -20,7 +20,7 @@ def main():
     screen.fill(BACKGROUND_COLOR)
 
     rotating_movers = []
-    num_movers = 1
+    num_movers = random.randint(1, 10)
 
     for _ in range(num_movers):
         size = random.randint(5, 30)
@@ -33,9 +33,7 @@ def main():
 
     running = True
 
-    gravity = pygame.Vector2(0, 0.001)
-
-    pygame.display.set_caption("n-body Simulation")
+    pygame.display.set_caption("Oscillation")
     while running:
         # Handle events
         for event in pygame.event.get():
@@ -43,7 +41,11 @@ def main():
                 running = False # Quit simulation
 
         for mover in rotating_movers:
-            mover.apply_force(gravity)
+            mouse_x, mouse_y = pygame.mouse.get_pos()
+            distance_force = pygame.Vector2(mouse_x - mover.position.x, mouse_y - mover.position.y)
+            distance_force.normalize_ip()
+            distance_force *= 0.1
+            mover.apply_force(distance_force)
             mover.update_position()
 
         screen.fill(BACKGROUND_COLOR)
