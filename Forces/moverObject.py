@@ -12,6 +12,7 @@ class Mover():
 
         self.__elastiticy = elastiticy
         self.friction_coef = friction_coef
+        self.original_coef = friction_coef
         # this are all pygame Vectors
         self.__position = pygame.Vector2(x, y)
         self.__velocity = velocity if velocity is not None else pygame.Vector2(0, 0)
@@ -75,6 +76,8 @@ class Mover():
         """
         if self.__position.y >= (HEIGHT - self.radius):
             return True 
+        
+        self.friction_coef = self.original_coef
         return False
 
     def get_mover_attributes(self):
@@ -100,7 +103,7 @@ class Mover():
 
         Returns the friction force.
         """
-        normal = self.mass
+        normal = self.mass / 10
 
         # If velocity is very small, don't apply friction
         if abs(self.__velocity.x) < 0.05:
@@ -110,7 +113,7 @@ class Mover():
         # Apply a small damping factor when the velocity is very small
         if abs(self.__velocity.x) < 0.1:
             print("reducing friction coef")
-            self.friction_coef = self.friction_coef * 0.5  # Reduce friction when moving slowly
+            self.friction_coef = self.friction_coef * 0.9 # Reduce friction when moving slowly
 
         # Calculate friction magnitude
         friction_magnitude = self.friction_coef * normal

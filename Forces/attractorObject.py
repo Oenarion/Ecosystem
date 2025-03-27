@@ -15,10 +15,10 @@ class Attractor():
         # will be used for the spawn and death update
         self.total_radius = radius
 
-        self.start_time_alive = -1
+        self.start_time_spawn = -1
         self.start_time_of_death = -1
         
-        self.alive_timer = 1
+        self.spawn_timer = 1
         self.death_timer = 2
 
     def attract(self, mover: moverObject.Mover) -> pygame.Vector2:
@@ -95,7 +95,7 @@ class Attractor():
         This will invoke a constant update which enlarges the attractor
         until it reaches it's full dimension.
         """
-        self.start_time_alive = time.time()
+        self.start_time_spawn = time.time()
     
     def check_spawn_update(self):
         """
@@ -105,13 +105,13 @@ class Attractor():
 
         Returns a boolean, True -> the attractor reached it's max dimension, False -> it's still getting bigger
         """
-        if self.start_time_alive != -1:
-            passed_time = time.time() - self.start_time_alive
+        if self.start_time_spawn != -1:
+            passed_time = time.time() - self.start_time_spawn
             
-            if passed_time > self.alive_timer:
+            if passed_time > self.spawn_timer:
                 return True
             
             # (1 - (self.alive_timer - passed_time) / self.alive_timer) will give me the % of how close
             # we are w.r.t. the alive timer, i.e. the closer we are (bigger number) the bigger the radius
-            self.radius = (1 - ((self.alive_timer - passed_time) / self.alive_timer)) * self.total_radius
+            self.radius = (1 - ((self.spawn_timer - passed_time) / self.spawn_timer)) * self.total_radius
             self.mass = self.radius * 2        

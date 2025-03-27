@@ -1,4 +1,5 @@
 import pygame
+import time
 
 class Body():
     def __init__(self, x: int, y: int, color: tuple, radius: int, mass = 1, velocity = None, acceleration = None):
@@ -17,6 +18,11 @@ class Body():
         self.position = pygame.Vector2(x, y)
         self.velocity = velocity if velocity is not None else pygame.Vector2(0, 0)
         self.acceleration = acceleration if acceleration is not None else pygame.Vector2(0, 0)
+
+        self.total_radius = radius
+
+        self.start_time_spawn = -1   
+        self.spawn_timer = 1
 
     def attract(self, body) -> pygame.Vector2:
         """
@@ -71,3 +77,31 @@ class Body():
         self.position += self.velocity
         self.acceleration *= 0 
         self.rect = pygame.Rect(self.position.x - self.radius, self.position.y - self.radius, self.radius*2, self.radius*2)
+
+    def birth_of_body(self):
+        """
+        Starts the spawning of the body.
+
+        This will invoke a constant update which enlarges the body
+        until it reaches it's full dimension.
+        """
+        self.start_time_spawn = time.time()
+    
+    def check_spawn_update(self):
+        """
+        It's the exact opposite of the check_death_update function, it updates the dimensions
+        of the body until it reaches it's full capacity. While the body is growing it's
+        still possible to kill it.
+
+        Returns a boolean, True -> the body reached it's max dimension, False -> it's still getting bigger
+        """
+        if self.start_time_spawn != -1:
+            passed_time = time.time() - self.start_time_spawn
+            
+            if passed_time > self.spawn_timer:
+                return True
+            
+            # (1 - (self.alive_timer - passed_time) / self.alive_timer) will give me the % of how close
+            # we are w.r.t. the alive timer, i.e. the closer we are (bigger number) the bigger the radius
+            self.radius = (1 - ((self.spawn_timer - passed_time) / self.spawn_timer)) * self.total_radius
+            self.mass = max(0.1, self.radius * 2)        

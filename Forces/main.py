@@ -9,11 +9,14 @@ import graphical_components as gc
 WIDTH = 640
 HEIGHT = 420
 BACKGROUND_COLOR = (0, 0, 0) # black
+OIL_COLOR = (200, 200, 0) # yellow
+WATER_COLOR = (0, 128, 255)  # blue
 
 MAX_MOVERS = 20
 MAX_ATTRACTORS = 15
+MAX_BODIES = 100
 
-def update_screen(screen: pygame.display, movers: list, liquid: liquidObject.Liquid, attractors: attractorObject.Attractor):
+def update_screen(screen: pygame.display, movers: list, liquids: liquidObject.Liquid, attractors: attractorObject.Attractor):
     """
     Updates the screen by visualizing all the objects in it.
 
@@ -22,9 +25,10 @@ def update_screen(screen: pygame.display, movers: list, liquid: liquidObject.Liq
         - movers -> array of objects to be displayed
     """
 
-    if liquid:
-        rect, color = liquid.get_draw_attributes()
-        pygame.draw.rect(screen, color, rect)
+    if liquids is not None and liquids != []:
+        for liquid in liquids:
+            rect, color = liquid.get_draw_attributes()
+            pygame.draw.rect(screen, color, rect)
 
     if attractors is not None and attractors != []:
         for attractor in attractors:
@@ -76,7 +80,21 @@ def create_new_mover(attractors):
             return None
         
     return curr_mover
-    
+
+def create_new_body():
+    """
+    Creates a new body with random values.
+
+    Returns the new body.
+    """
+    mov_radius = random.randint(2, 20)
+    mov_x, mov_y = random.randint(10, WIDTH - 10), random.randint(10, HEIGHT - 10)
+    mov_mass = mov_radius * 2
+    mov_rand_color = (random.randint(0,255), random.randint(0,255), random.randint(0,255))
+    curr_body = bodyObject.Body(mov_x, mov_y, mov_rand_color, mov_radius, mass=mov_mass)
+
+    return curr_body
+
 def create_new_attractor(attractors):
     """
     Creates new attractor with random values initialization, if the attractor overlaps for more than
@@ -119,7 +137,6 @@ def check_spawn_collision(new_obj: pygame.Rect, attractors: list[attractorObject
             return False
 
     return True
-
 
 def main_menu():
     pygame.init()
@@ -167,34 +184,43 @@ def main_menu():
         pygame.display.update()
         clock.tick(60)
 
-
 def simulation1_main():
     pygame.init()
     clock = pygame.Clock()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
-    num_movers = random.randint(1, 10)
+    num_movers = random.randint(1, 5)
     print(f"Created {num_movers} movers!")
     movers = []
     
-    liquid = liquidObject.Liquid(0, 300, WIDTH, HEIGHT, (128, 128, 128))
+    
+
+    water = liquidObject.Liquid(0, 300, WIDTH, HEIGHT - 300, WATER_COLOR)
+    oil = liquidObject.Liquid(0, 250, WIDTH, 50, OIL_COLOR, 0.5)
+
+    liquids = [water, oil]
     for i in range(num_movers):
         radius = random.randint(5, 20)
         x, y = random.randint(100, WIDTH - 100), 100
-        mass = random.randint(1, 5)
+        mass = radius * 10
         rand_color = (random.randint(0,255), random.randint(0,255), random.randint(0,255))
-        friction_coef = random.uniform(0,0.5)
+        friction_coef = random.uniform(0.8,0.99)
         print(f"Friction coef of mover {i} is: {friction_coef}")
         curr_mover = moverObject.Mover(x, y, rand_color, radius, mass=mass, friction_coef=friction_coef)
         movers.append(curr_mover)
 
     screen.fill(BACKGROUND_COLOR)
 
-    update_screen(screen, movers, liquid, None)
+    update_screen(screen, movers, liquids, None)
 
     running = True
 
     gravity = pygame.Vector2(0, 0.1)
+    increasing_gravity = pygame.Vector2(0, 0.5)
+    max_val_gravity = 25
+    apply_increased_gravity = False
+    negative_increasing_gravity = pygame.Vector2(0, -0.5)
+    apply_negative_increased_gravity = False
     wind = pygame.Vector2(0.5, 0)
     is_wind_blowing = False
 
@@ -211,6 +237,24 @@ def simulation1_main():
             if event.type == pygame.MOUSEBUTTONUP:
                 is_wind_blowing = False
 
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_q: 
+                    apply_increased_gravity = True
+
+            if event.type == pygame.KEYUP:
+                if event.key == pygame.K_q: 
+                    apply_increased_gravity = False
+                    increasing_gravity = pygame.Vector2(0, 0.5) 
+
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_w: 
+                    apply_negative_increased_gravity = True
+
+            if event.type == pygame.KEYUP:
+                if event.key == pygame.K_w: 
+                    apply_negative_increased_gravity = False
+                    negative_increasing_gravity = pygame.Vector2(0, -0.5) 
+
         # movers are now subject to gravity
         for i, mover in enumerate(movers):
 
@@ -219,24 +263,48 @@ def simulation1_main():
             else:
                 # scale the gravity by the mover's mass
                 mover.apply_force(gravity * mover.mass)
+                if apply_increased_gravity:
+                    increasing_gravity += pygame.Vector2(0, 0.001)
+                    max_y_vel = min(increasing_gravity[1], max_val_gravity)
+                    increasing_gravity = pygame.Vector2(0, max_y_vel)
+                    mover.apply_force(increasing_gravity * mover.mass)
 
-            if liquid.contains_object(mover.rect) and abs(mover.velocity.y) > 0.01:
-                drag_force = liquid.compute_drag_force(mover.velocity, mover.radius)
-                # add a limit so that the item doesn't bounce off the liquid.
-                if drag_force.magnitude_squared() > mover.velocity.magnitude_squared():
-                    limit_drag_force = pygame.Vector2(0, - mover.velocity.y + 0.3) 
-                    mover.apply_force(limit_drag_force)
-                else:
-                    mover.apply_force(drag_force)
+            if apply_negative_increased_gravity:
+                negative_increasing_gravity += pygame.Vector2(0, -0.001)
+                print(negative_increasing_gravity)
+                max_y_vel = max(negative_increasing_gravity[1], -max_val_gravity)
+                negative_increasing_gravity = pygame.Vector2(0, max_y_vel)
+                mover.apply_force(negative_increasing_gravity * mover.mass)
 
+            for liquid in liquids:
+                if liquid.contains_object(mover.rect) and abs(mover.velocity.y) > 0.01:
+                    drag_force, buoyant_force = liquid.compute_drag_force(mover.velocity, mover.radius, mover.mass)
+                    #print(f"drag force: {drag_force}")
+
+                    if drag_force.magnitude_squared() > mover.velocity.magnitude_squared():
+                        limit_drag_force = pygame.Vector2(0, - mover.velocity.y*2) 
+                        #print(f"Limit drag force: {limit_drag_force}")
+                        mover.apply_force(limit_drag_force)
+                    else:
+                        mover.apply_force(drag_force)
+
+                    # apply this force only if it's oil
+                    if liquid.color == OIL_COLOR:
+                        mover.apply_force(buoyant_force)
+
+                    #print(f"curr acceleration: {mover.acceleration}")
             if is_wind_blowing:
-                mover.apply_force(wind)
+                mouse_x, _ = pygame.mouse.get_pos()
+                if mouse_x < mover.position.x:
+                    mover.apply_force(wind)
+                else:
+                    mover.apply_force(-wind)
 
             if mover.check_floor(HEIGHT):
                 friction = mover.compute_friction()
                 mover.apply_force(friction)
             #     print(f"Friction: {friction}")
-            print(f"Mover's velocity: {mover.velocity}")
+            #print(f"Mover's velocity: {mover.velocity}")
 
             
             mover.update_position()
@@ -246,7 +314,7 @@ def simulation1_main():
             
 
         screen.fill(BACKGROUND_COLOR)
-        update_screen(screen, movers, liquid, None)
+        update_screen(screen, movers, liquids, None)
         
         # Update display
         pygame.display.update()
@@ -384,6 +452,7 @@ def simulation3_main():
         screen.fill(BACKGROUND_COLOR)
         
         for i, body in enumerate(bodies):
+            body.check_spawn_update()
             for j, other_body in enumerate(bodies):
                 if i != j:
                     grav_force = other_body.attract(body)
@@ -394,6 +463,16 @@ def simulation3_main():
                 print("Body went out of bounds :c")
                 bodies.pop(i)
         
+        spawn_chance = random.randint(0, 100)
+
+        if spawn_chance > 99:
+            new_body = create_new_body()
+            new_body.birth_of_body()
+            new_body.check_spawn_update()
+            if new_body is not None and len(bodies) < MAX_BODIES:
+                bodies.append(new_body)
+                print("New body!!")
+
         update_screen(screen, bodies, None, None)
         # Update display
         pygame.display.update()

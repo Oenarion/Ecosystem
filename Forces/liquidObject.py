@@ -19,7 +19,7 @@ class Liquid():
     
         return False
     
-    def compute_drag_force(self, velocity: pygame.Vector2, sur_area: int):
+    def compute_drag_force(self, velocity: pygame.Vector2, sur_area: int, mass: float):
         """
         Computes the drag force for the given object.
 
@@ -36,8 +36,10 @@ class Liquid():
         drag_force.normalize_ip()
         drag_force *= -1
         drag_force *= drag_magnitude
+
+        buoyant_force = pygame.Vector2(0, -mass * 0.3)
         
-        return drag_force
+        return drag_force, buoyant_force
     
     def get_draw_attributes(self):
         """
