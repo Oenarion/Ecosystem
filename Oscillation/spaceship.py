@@ -1,5 +1,5 @@
 import pygame
-import rotatingMover
+import Oscillation.oscillators as oscillators
 import random
 
 WIDTH = 640
@@ -18,7 +18,7 @@ def main():
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
     screen.fill(BACKGROUND_COLOR)
-    spaceship = rotatingMover.Spaceship(300, 100, 20, 10, (128, 255, 0), pygame.Vector2(0, 1), angle=90)
+    spaceship = oscillators.Spaceship(300, 100, 20, 10, (128, 255, 0), pygame.Vector2(0, 1), angle=90)
     running = True
 
     turning_left = False

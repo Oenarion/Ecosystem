@@ -1,17 +1,65 @@
 import pygame
-import rotatingMover
+import oscillators
 import random
+import graphical_components as gc
 
 WIDTH = 640
 HEIGHT = 420
 BACKGROUND_COLOR = (0, 0, 0)
 
-def update_screen(screen, movers: rotatingMover.RotatingMover):
+def update_screen(screen, movers: oscillators.RotatingMover):
     
     for mover in movers:
         mover.draw(screen)
 
-def main():
+def main_menu():
+    pygame.init()
+    screen = pygame.display.set_mode((WIDTH, HEIGHT))
+    pygame.display.set_caption("Forces Simulation")
+    clock = pygame.time.Clock()
+
+    simulation1_button = gc.Button(WIDTH // 2 - 150, HEIGHT // 2 - 150, 300, 50, "Rotating objects")
+    simulation2_button = gc.Button(WIDTH // 2 - 150, HEIGHT // 2 - 75, 300, 50, "Oscillators")
+    # simulation3_button = gc.Button(WIDTH // 2 - 150, HEIGHT // 2, 300, 50, "N-body problem")
+    exit_button = gc.Button(WIDTH // 2 - 150, HEIGHT // 2 , 300, 50, "Exit")
+
+    running = True
+    while running:
+        screen.fill((0, 0, 0))
+
+        for event in pygame.event.get():
+            # exit
+            if event.type == pygame.QUIT:
+                return False 
+
+            simulation1_button.handle_event(event)
+            simulation2_button.handle_event(event)
+            # simulation3_button.handle_event(event)
+            exit_button.handle_event(event)
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if simulation1_button.is_hovered(event.pos):
+                    simulation1_main()
+                
+                if simulation2_button.is_hovered(event.pos):
+                    simulation2_main()
+
+                # if simulation3_button.is_hovered(event.pos):
+                #     simulation3_main()
+                
+                if exit_button.is_hovered(event.pos):
+                    return False  # Exit application
+                
+        simulation1_button.draw(screen)
+        simulation2_button.draw(screen)
+        #simulation3_button.draw(screen)
+        exit_button.draw(screen)
+
+        pygame.display.update()
+        clock.tick(60)
+
+
+def simulation1_main():
 
     pygame.init()
     clock = pygame.Clock()
@@ -28,7 +76,7 @@ def main():
         x = random.randint(0, WIDTH - w)
         y = random.randint(0, HEIGHT - h)
         color = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
-        rot_mover = rotatingMover.RotatingMover(x, y, w, h, color)
+        rot_mover = oscillators.RotatingMover(x, y, w, h, color)
         rotating_movers.append(rot_mover)
 
     running = True
@@ -54,7 +102,42 @@ def main():
         pygame.display.update()
         clock.tick(60)
 
+def simulation2_main():
+    pygame.init()
+    clock = pygame.Clock()
+    screen = pygame.display.set_mode((WIDTH, HEIGHT))
+
+    screen.fill(BACKGROUND_COLOR)
+    oscillators_array = []
+    num_oscillators = random.randint(2, 15)
+
+    for _ in range(num_oscillators):
+        oscillator = oscillators.Oscillator(WIDTH // 2, HEIGHT // 2, 10, 
+                                            pygame.Vector2(random.randint(0, 360), random.randint(0, 360)), 
+                                            pygame.Vector2(random.uniform(1, 5), random.uniform(1, 5)), random.randint(20, HEIGHT // 2))
+
+        oscillators_array.append(oscillator)
+
+
+    running = True
+
+    pygame.display.set_caption("Oscillation")
+    while running:
+        
+        screen.fill(BACKGROUND_COLOR)
+        # Handle events
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False # Quit simulation
+
+        for oscillator in oscillators_array:
+            oscillator.oscillate()
+            oscillator.draw(screen)
+
+        # Update display
+        pygame.display.update()
+        clock.tick(60)
 
 
 if __name__ == "__main__":
-    main()
+    main_menu()
