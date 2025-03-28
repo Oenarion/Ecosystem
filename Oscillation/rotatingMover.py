@@ -66,8 +66,112 @@ class RotatingMover():
         rect_surf.fill(self.color)
 
         # Rotate the surface
-        rotated_surf = pygame.transform.rotate(rect_surf, self.angle_position)  # Negative to match Pygame rotation
+        rotated_surf = pygame.transform.rotate(rect_surf, self.angle_position)
         rotated_rect = rotated_surf.get_rect(center=self.rect.center)
 
         # Blit the rotated surface
         screen.blit(rotated_surf, rotated_rect.topleft)
+
+
+
+class Spaceship():
+
+    def __init__(self, x: int, y: int, w: int, h: int, color: tuple,
+                 velocity = None, speed = 1, acceleration = 0.1, angle = 0):
+                
+        self.color = color
+        self.w = w
+        self.h = h
+        self.rect = pygame.Rect(x, y, w, h)
+
+        self.speed = speed
+        self.acceleration = acceleration
+        self.position = pygame.Vector2(x, y)
+        self.velocity = velocity if velocity is not None else pygame.Vector2(0, 0)
+        self.angle = angle
+        self.rotation_amount = 5
+
+
+    def apply_thrust(self):
+        """
+        Moves the spaceship in the direction of its current angle.
+        """
+
+        # Convert angle to radians
+        angle_rad = math.radians(self.angle)
+
+        # Compute thrust force vector (small increments)
+        thrust_force = pygame.Vector2(
+            self.acceleration * math.cos(angle_rad),
+            self.acceleration * math.sin(angle_rad)
+        )
+
+        # Apply the force without normalizing (to accumulate velocity correctly)
+        self.velocity += thrust_force
+
+        # Optional: Limit max speed
+        max_speed = 20
+        if self.velocity.magnitude() > max_speed:
+            self.velocity.scale_to_length(max_speed)
+
+    def decrease_speed(self):
+        """
+        Decreases the velocity of the spaceship to standard velocity when no thrust is applied.
+        """
+        # Convert angle to radians
+        angle_rad = math.radians(self.angle)
+
+        # Compute thrust force vector (small increments)
+        thrust_force = pygame.Vector2(
+            self.acceleration * math.cos(angle_rad),
+            self.acceleration * math.sin(angle_rad)
+        )
+
+        # Apply the force without normalizing (to accumulate velocity correctly)
+        self.velocity -= thrust_force
+
+        if self.velocity.magnitude() < self.speed:
+            self.velocity.scale_to_length(self.speed)
+
+    def turn(self, direction):
+        """
+        Rotates the spaceship left or right.
+        """
+        if direction == "LEFT":
+            self.angle = (self.angle - self.rotation_amount) % 360  # Rotate counterclockwise
+        elif direction == "RIGHT":
+            self.angle = (self.angle + self.rotation_amount) % 360  # Rotate clockwise
+
+        angle_rad = math.radians(self.angle)
+        speed_direction = pygame.Vector2(
+            self.speed * math.cos(angle_rad),
+            self.speed * math.sin(angle_rad)
+        )
+        speed_direction.normalize_ip()
+        self.velocity = speed_direction * self.velocity.magnitude()
+
+    def update_position(self):
+        """
+        Updates the spaceship's position based on velocity.
+        """
+
+        self.position += self.velocity
+        self.rect = pygame.Rect(self.position.x, self.position.y, self.w, self.h)
+       
+
+    def draw(self, screen):
+        """
+        Draws the rotated rectangle on the screen.
+        """
+
+        # Create a surface with the same size as the rect, with transparency
+        rect_surf = pygame.Surface((self.w, self.h), pygame.SRCALPHA)
+        rect_surf.fill(self.color)
+
+        # Rotate the surface
+        rotated_surf = pygame.transform.rotate(rect_surf, -self.angle) 
+        rotated_rect = rotated_surf.get_rect(center=(self.position.x, self.position.y))  # Update position
+
+        # Blit the rotated surface to the screen
+        screen.blit(rotated_surf, rotated_rect.topleft)
+
