@@ -210,3 +210,29 @@ class Oscillator():
         pygame.draw.circle(screen, (60, 200, 200), (self.position.x, self.position.y), self.radius + 3)
         pygame.draw.circle(screen, (200, 200, 200), (self.position.x, self.position.y), self.radius)
         
+
+class Wave():
+    def __init__(self, x: int, y: int, amplitude: int, wavelength: int, inpoint_distance: int, start_angle: int, delta_angle: float, radius: int):
+        self.x = x
+        self.y = y
+        self.amplitude = amplitude
+        self.wavelength = wavelength
+        self.inpoint_distance = inpoint_distance
+        self.start_angle = start_angle
+        self.delta_angle = delta_angle
+        self.radius = radius
+
+    def draw(self, screen):
+        
+        angle = self.start_angle * 1
+
+        for i in range(0, self.wavelength, self.inpoint_distance):
+            
+            curr_x = self.x + i
+            # always remember to convert to radians, kids.
+            curr_y = self.y + (math.sin(math.radians(angle)) * self.amplitude)
+            angle += self.delta_angle
+            pygame.draw.circle(screen, (255, 255, 255), (curr_x, curr_y), self.radius+2)
+            pygame.draw.circle(screen, (128, 128, 128), (curr_x, curr_y), self.radius)
+        
+        self.start_angle += self.delta_angle

@@ -20,8 +20,8 @@ def main_menu():
 
     simulation1_button = gc.Button(WIDTH // 2 - 150, HEIGHT // 2 - 150, 300, 50, "Rotating objects")
     simulation2_button = gc.Button(WIDTH // 2 - 150, HEIGHT // 2 - 75, 300, 50, "Oscillators")
-    # simulation3_button = gc.Button(WIDTH // 2 - 150, HEIGHT // 2, 300, 50, "N-body problem")
-    exit_button = gc.Button(WIDTH // 2 - 150, HEIGHT // 2 , 300, 50, "Exit")
+    simulation3_button = gc.Button(WIDTH // 2 - 150, HEIGHT // 2, 300, 50, "Wave simulation")
+    exit_button = gc.Button(WIDTH // 2 - 150, HEIGHT // 2 + 75, 300, 50, "Exit")
 
     running = True
     while running:
@@ -34,7 +34,7 @@ def main_menu():
 
             simulation1_button.handle_event(event)
             simulation2_button.handle_event(event)
-            # simulation3_button.handle_event(event)
+            simulation3_button.handle_event(event)
             exit_button.handle_event(event)
 
             if event.type == pygame.MOUSEBUTTONDOWN:
@@ -44,15 +44,15 @@ def main_menu():
                 if simulation2_button.is_hovered(event.pos):
                     simulation2_main()
 
-                # if simulation3_button.is_hovered(event.pos):
-                #     simulation3_main()
+                if simulation3_button.is_hovered(event.pos):
+                     simulation3_main()
                 
                 if exit_button.is_hovered(event.pos):
                     return False  # Exit application
                 
         simulation1_button.draw(screen)
         simulation2_button.draw(screen)
-        #simulation3_button.draw(screen)
+        simulation3_button.draw(screen)
         exit_button.draw(screen)
 
         pygame.display.update()
@@ -154,6 +154,30 @@ def simulation2_main():
         pygame.display.update()
         clock.tick(60)
 
+def simulation3_main():
+    pygame.init()
+    clock = pygame.Clock()
+    screen = pygame.display.set_mode((WIDTH, HEIGHT))
+
+    screen.fill(BACKGROUND_COLOR)
+
+    running = True
+
+    wave = oscillators.Wave(x = 0, y = 300, amplitude = 100, wavelength = WIDTH + 20, 
+                            inpoint_distance = 20, start_angle = 0, delta_angle = 10, radius = 15)
+    pygame.display.set_caption("Wave simulation")
+    while running:
+        
+        screen.fill(BACKGROUND_COLOR)
+        # Handle events
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False # Quit simulation
+
+        wave.draw(screen)
+        # Update display
+        pygame.display.update()
+        clock.tick(60)
 
 if __name__ == "__main__":
     main_menu()
