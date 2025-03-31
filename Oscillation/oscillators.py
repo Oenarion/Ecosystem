@@ -177,7 +177,7 @@ class Spaceship():
 
 
 class Oscillator():
-    def __init__(self, x: int, y: int, radius: int,angle: float, angle_velocity: float, amplitude: int):
+    def __init__(self, x: int, y: int, radius: int,angle: float, angle_velocity: pygame.Vector2, amplitude: int, angle_acceleration: pygame.Vector2):
         
         self.x = x
         self.y = y
@@ -185,8 +185,18 @@ class Oscillator():
         self.position = pygame.Vector2(x, y)
         self.angle = angle if angle is not None else pygame.Vector2(0,0)
         self.angle_velocity = angle_velocity if angle_velocity is not None else pygame.Vector2(random.uniform(0, 0.5), random.uniform(0, 0.5))
+        self.starting_angle_velocity = self.angle_velocity.copy()
+        self.angle_acceleration = angle_acceleration
         self.amplitude = amplitude
 
+    def accelerate(self):
+        if self.angle_velocity.magnitude_squared() < 100:
+            self.angle_velocity += self.angle_acceleration
+            self.angle_velocity.x = min(self.angle_velocity.x, 10)
+
+    def decelerate(self):
+        if self.angle_velocity.magnitude() > self.starting_angle_velocity.magnitude():
+            self.angle_velocity -= self.angle_acceleration
 
     def oscillate(self):
         new_x = self.x + (math.sin(math.radians(self.angle.x)) * self.amplitude)

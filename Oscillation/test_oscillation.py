@@ -109,17 +109,20 @@ def simulation2_main():
 
     screen.fill(BACKGROUND_COLOR)
     oscillators_array = []
-    num_oscillators = random.randint(2, 15)
+    num_oscillators = random.randint(1, 15)
 
     for _ in range(num_oscillators):
         oscillator = oscillators.Oscillator(WIDTH // 2, HEIGHT // 2, 10, 
                                             pygame.Vector2(random.randint(0, 360), random.randint(0, 360)), 
-                                            pygame.Vector2(random.uniform(1, 5), random.uniform(1, 5)), random.randint(20, HEIGHT // 2))
+                                            pygame.Vector2(random.uniform(1, 5), random.uniform(1, 5)), random.randint(20, HEIGHT // 2),
+                                            pygame.Vector2(random.uniform(0, 0.8), random.uniform(0, 0.8)))
 
         oscillators_array.append(oscillator)
 
 
     running = True
+
+    accelerate = False
 
     pygame.display.set_caption("Oscillation")
     while running:
@@ -130,7 +133,20 @@ def simulation2_main():
             if event.type == pygame.QUIT:
                 running = False # Quit simulation
 
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    accelerate = True
+            
+            if event.type == pygame.KEYUP:
+                if event.key == pygame.K_SPACE:
+                    accelerate = False
+
         for oscillator in oscillators_array:
+            if accelerate:
+                oscillator.accelerate()
+            else:
+                oscillator.decelerate()
+
             oscillator.oscillate()
             oscillator.draw(screen)
 
