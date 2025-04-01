@@ -39,15 +39,19 @@ def main_menu():
 
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if simulation1_button.is_hovered(event.pos):
+                    pygame.quit()
                     simulation1_main()
                 
                 if simulation2_button.is_hovered(event.pos):
+                    pygame.quit()
                     simulation2_main()
 
                 if simulation3_button.is_hovered(event.pos):
+                     pygame.quit()
                      simulation3_main()
                 
                 if exit_button.is_hovered(event.pos):
+                    pygame.quit()
                     return False  # Exit application
                 
         simulation1_button.draw(screen)
@@ -87,6 +91,8 @@ def simulation1_main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False # Quit simulation
+                pygame.quit()
+                main_menu()
 
         for mover in rotating_movers:
             mouse_x, mouse_y = pygame.mouse.get_pos()
@@ -132,6 +138,8 @@ def simulation2_main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False # Quit simulation
+                pygame.quit()
+                main_menu()
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
@@ -158,26 +166,54 @@ def simulation3_main():
     pygame.init()
     clock = pygame.Clock()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
+    pygame.display.set_caption("Superimposed Waves")
 
-    screen.fill(BACKGROUND_COLOR)
+    num_waves = random.randint(1, 5)
+    waves = []
+
+    for _ in range(num_waves):
+        wave = oscillators.Wave(amplitude=random.randint(20, 150), wavelength=random.randint(100, WIDTH+20), 
+                                delta_angle=random.randint(1, 5), start_angle=random.randint(0, 359))
+        waves.append(wave)
 
     running = True
+    base_y = HEIGHT // 2  # Centerline for the wave
+    move_base_ratio = 0.1
 
-    wave = oscillators.Wave(x = 0, y = 300, amplitude = 100, wavelength = WIDTH + 20, 
-                            inpoint_distance = 20, start_angle = 0, delta_angle = 10, radius = 15)
-    pygame.display.set_caption("Wave simulation")
     while running:
-        
+        if not pygame.get_init():  # Check if Pygame is still active
+            break
+
         screen.fill(BACKGROUND_COLOR)
-        # Handle events
+
+        # Handle quit event
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                running = False # Quit simulation
+                running = False
+                pygame.quit()
+                main_menu()
 
-        wave.draw(screen)
-        # Update display
+        # Draw the combined wave
+        base_y += move_base_ratio
+        if base_y > HEIGHT - 70:
+            move_base_ratio *= -1
+        elif base_y < 70:
+            move_base_ratio *= -1
+        
+        
+        for x in range(WIDTH):
+            y_offset = sum(wave.get_y_offset(x) for wave in waves)  # Sum all wave offsets
+            curr_y = base_y + y_offset  # Get final y position
+            pygame.draw.circle(screen, (255, 255, 255), (x, int(curr_y)), 4) 
+
+        # Update waves for animation
+        for wave in waves:
+            wave.update_wave()
+
         pygame.display.update()
         clock.tick(60)
+
+    pygame.quit()
 
 if __name__ == "__main__":
     main_menu()

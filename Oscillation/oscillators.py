@@ -212,27 +212,21 @@ class Oscillator():
         
 
 class Wave():
-    def __init__(self, x: int, y: int, amplitude: int, wavelength: int, inpoint_distance: int, start_angle: int, delta_angle: float, radius: int):
-        self.x = x
-        self.y = y
+    def __init__(self, amplitude: int, wavelength: int, delta_angle: float, start_angle):
         self.amplitude = amplitude
         self.wavelength = wavelength
-        self.inpoint_distance = inpoint_distance
-        self.start_angle = start_angle
         self.delta_angle = delta_angle
-        self.radius = radius
+        self.start_angle = start_angle  # Phase shift for animation
 
-    def draw(self, screen):
-        
-        angle = self.start_angle * 1
+    def get_y_offset(self, x):
+        """
+        Compute the wave's y offset at a given x position.
+        """
+        angle = self.start_angle + (x / self.wavelength) * 360  # Convert to degrees
+        return math.sin(math.radians(angle)) * self.amplitude  # Convert to y offset
 
-        for i in range(0, self.wavelength, self.inpoint_distance):
-            
-            curr_x = self.x + i
-            # always remember to convert to radians, kids.
-            curr_y = self.y + (math.sin(math.radians(angle)) * self.amplitude)
-            angle += self.delta_angle
-            pygame.draw.circle(screen, (255, 255, 255), (curr_x, curr_y), self.radius+2)
-            pygame.draw.circle(screen, (128, 128, 128), (curr_x, curr_y), self.radius)
-        
-        self.start_angle += self.delta_angle
+    def update_wave(self):
+        """
+        Update the wave to animate it.
+        """
+        self.start_angle += self.delta_angle  # Move the wave over time
