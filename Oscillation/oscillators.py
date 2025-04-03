@@ -1,6 +1,7 @@
 import pygame
 import math
 import random
+import time
 
 class RotatingMover():
 
@@ -44,17 +45,17 @@ class RotatingMover():
         self.rect = pygame.Rect(self.position.x, self.position.y, self.w, self.h)
         
         self.angle_acceleration = self.acceleration.magnitude()
-        print(self.angle_acceleration, self.acceleration.magnitude())
+        # print(self.angle_acceleration, self.acceleration.magnitude())
         self.angle_velocity += self.angle_acceleration
         self.angle_velocity = min(0.1, max(-0.1, self.angle_velocity))
-        print(self.angle_velocity, math.degrees(self.angle_velocity))
+        # print(self.angle_velocity, math.degrees(self.angle_velocity))
         self.angle_position += math.degrees(self.angle_velocity)
         self.angle_position %= 360
         
         self.acceleration *= 0 
         self.angle_acceleration = 0
 
-        print(self.angle_position)
+        # print(self.angle_position)
 
 
     def draw(self, screen):
@@ -73,7 +74,6 @@ class RotatingMover():
         # Blit the rotated surface
         screen.blit(rotated_surf, rotated_rect.topleft)
 
-
 class Spaceship():
 
     def __init__(self, x: int, y: int, w: int, h: int, color: tuple,
@@ -91,6 +91,11 @@ class Spaceship():
         self.angle = angle
         self.rotation_amount = 5
 
+        # lifes of the spaceship and how much invulnerability we have after a hit.
+        self.lifes = 3
+        self.invulnerability_seconds = 1.5
+        self.start_invulnerability_timer = -1
+        self.is_invulnerable = False
 
     def apply_thrust(self):
         """
@@ -150,14 +155,51 @@ class Spaceship():
         speed_direction.normalize_ip()
         self.velocity = speed_direction * self.velocity.magnitude()
 
-    def update_position(self):
+    def update_position(self, WIDTH, HEIGHT):
         """
         Updates the spaceship's position based on velocity.
         """
 
         self.position += self.velocity
         self.rect = pygame.Rect(self.position.x, self.position.y, self.w, self.h)
-       
+        self.keep_spaceship_in_bounds( WIDTH, HEIGHT)
+
+    def keep_spaceship_in_bounds(self, WIDTH, HEIGHT):
+        """
+        Keeps the spaceship in bounds. Since the spaceship will always be oriented
+        in a certain way when hitting walls, he have to check that it doesn't surpass
+        the value of height of the spaceship.
+
+        Args:
+            - WIDTH -> width of the canvas.
+            - HEIGHT -> height of the canvas.
+        """
+        if self.position.x < self.h:
+            self.position.x = self.h
+        if self.position.x > WIDTH - self.h:
+            self.position.x = WIDTH - self.h
+        if self.position.y < self.h:
+            self.position.y = self.h
+        if self.position.y > HEIGHT - self.h:
+            self.position.y = HEIGHT - self.h
+        
+    def hit(self):
+        """
+        Spaceship gets hit by an asteroid, update all the meaningful variables.
+        """
+        self.lifes -= 1
+        self.is_invulnerable = True
+        self.start_invulnerability_timer = time.time()
+
+    def invulnerability_timer(self):
+        """
+        Checks whether the spaceship is still invulnerable or not.
+        """
+        if self.is_invulnerable:
+            passed_time = time.time() - self.start_invulnerability_timer
+            if passed_time > self.invulnerability_seconds:
+                self.is_invulnerable = False
+                self.start_invulnerability_timer = -1
 
     def draw(self, screen):
         """
@@ -175,7 +217,96 @@ class Spaceship():
         # Blit the rotated surface to the screen
         screen.blit(rotated_surf, rotated_rect.topleft)
 
+class Asteroid():
+    
+    def __init__(self, x: int, y: int, w: int, h: int, color: tuple,
+                velocity = None, angle_position = 0, angle_velocity = 0):
+                
+        self.color = color
+        self.w = w
+        self.h = h
+        self.rect = pygame.Rect(x, y, w, h)
 
+        self.position = pygame.Vector2(x, y)
+        self.velocity = velocity if velocity is not None else pygame.Vector2(0, 0)
+
+        self.angle_position = angle_position
+        self.angle_velocity = angle_velocity
+
+        self.is_in_bounds = False
+        self.kill = False
+
+    def update_position(self):
+        """
+        Updates the position of the mover, used after a force is applied via apply_force().
+        The update takes into account also angle acceleration (rotation of the object).
+        """
+        self.position += self.velocity
+        self.rect = pygame.Rect(self.position.x, self.position.y, self.w, self.h)
+        
+        self.angle_position += math.degrees(self.angle_velocity)
+        self.angle_position %= 360
+
+    def in_bounds(self, WIDTH: int, HEIGHT: int):
+        """
+        Checks if the asteroid is in the bounds of the canvas.
+        It is useful to handle the termination of the asteroid, i.e. falls out of the canvas.
+        Since the asteroid spawns out of the canvas we need to check that it enters it before dying.
+
+        Args:
+            - WIDTH -> width of the canvas
+            - HEIGHT -> height of the canvas
+
+        """
+        in_canvas = False
+        if self.position.x >= 0 and self.position.x <= WIDTH and self.position.y >= 0 and self.position.y <= HEIGHT:
+            in_canvas = True
+
+        if in_canvas and not self.is_in_bounds:
+            self.is_in_bounds = True
+
+        if not in_canvas and self.is_in_bounds:
+            self.kill = True
+
+    def check_death(self):
+        """
+        Checks if the asteroid is to be killed or not.
+        Returns a boolean to handle it's death state.
+        """
+        return self.kill
+    
+    def check_collision(self, spaceship_rect):
+        """
+        Checks if the asteroid collided with the rect or not.
+
+        Args:
+            - spaceship_rect -> the rect containing the spaceship
+
+        Returns a boolean
+        """
+        
+        if self.rect.colliderect(spaceship_rect):
+            self.kill = True
+            return True
+
+        return False
+
+    def draw(self, screen):
+        """
+        Draws the rotated rectangle on the screen
+        """
+
+        # Create a surface with the same size as the rect
+        rect_surf = pygame.Surface((self.w, self.h), pygame.SRCALPHA)
+        rect_surf.fill(self.color)
+
+        # Rotate the surface
+        rotated_surf = pygame.transform.rotate(rect_surf, self.angle_position)
+        rotated_rect = rotated_surf.get_rect(center=self.rect.center)
+
+        # Blit the rotated surface
+        screen.blit(rotated_surf, rotated_rect.topleft)
+    
 class Oscillator():
     def __init__(self, x: int, y: int, radius: int,angle: float, angle_velocity: pygame.Vector2, amplitude: int, angle_acceleration: pygame.Vector2):
         
@@ -210,7 +341,6 @@ class Oscillator():
         pygame.draw.circle(screen, (60, 200, 200), (self.position.x, self.position.y), self.radius + 3)
         pygame.draw.circle(screen, (200, 200, 200), (self.position.x, self.position.y), self.radius)
         
-
 class Wave():
     def __init__(self, amplitude: int, wavelength: int, delta_angle: float, start_angle):
         self.amplitude = amplitude
