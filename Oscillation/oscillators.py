@@ -412,3 +412,98 @@ class Pendulum():
         pygame.draw.line(screen, (255, 255, 255), self.pivot_position, self.bob_position)
         pygame.draw.circle(screen, (60, 200, 200), self.bob_position, self.bob_radius + 3)
         pygame.draw.circle(screen, (200, 200, 200), self.bob_position, self.bob_radius)
+
+
+class DoublePendulum:
+    def __init__(self, x, y, r, angle1, angle2, v1=0, v2=0, bob_radius=5):
+
+        self.origin = pygame.Vector2(x, y)
+        self.r = r  
+        self.m = 1 
+
+        # Angles and angular velocities/accelerations (in radians)
+        self.theta1 = math.radians(angle1)
+        self.theta2 = math.radians(angle2)
+        self.v1 = v1
+        self.v2 = v2
+        self.a1 = 0
+        self.a2 = 0
+
+        self.bob_radius = bob_radius
+        self.damping = 0.999  # Friction
+
+        # Position of bobs
+        self.bob1 = pygame.Vector2()
+        self.bob2 = pygame.Vector2()
+
+        self.MAX_VELOCITY = 50
+
+        self.trails = []
+
+    def update_positions(self):
+        """Update bob positions based on current angles"""
+        x1 = self.origin.x + self.r * math.sin(self.theta1)
+        y1 = self.origin.y + self.r * math.cos(self.theta1)
+
+        x2 = x1 + self.r * math.sin(self.theta2)
+        y2 = y1 + self.r * math.cos(self.theta2)
+
+        self.bob1 = pygame.Vector2(x1, y1)
+        self.bob2 = pygame.Vector2(x2, y2)
+
+        if len(self.trails) > 1500:
+            self.trails.pop(0)
+        self.trails.append(self.bob2)
+
+    def update(self, gravity):
+        """
+        Update pendulum motion using real physics,
+        i'm no physicist this equations are copied lol
+        """
+        g = gravity.magnitude()
+
+        # Intermediate values to simplify the expression
+        sin1 = math.sin(self.theta1)
+        sin2 = math.sin(self.theta2)
+        cos1 = math.cos(self.theta1)
+        sin12 = math.sin(self.theta1 - self.theta2)
+        cos12 = math.cos(self.theta1 - self.theta2)
+
+        # Equations for angular acceleration (assuming m1 = m2, r1 = r2)
+        num1 = -g * (2 * sin1 + sin2)
+        num2 = -self.v2 ** 2 * self.r * sin12
+        num3 = -self.v1 ** 2 * self.r * sin12 * cos12
+        denom = self.r * (2 - math.cos(2 * (self.theta1 - self.theta2)))
+
+        self.a1 = (num1 + num2 + num3) / denom
+
+        num1 = 2 * sin12
+        num2 = self.v1 ** 2 * self.r + g * cos1 + self.v2 ** 2 * self.r * cos12
+        self.a2 = num1 * num2 / denom
+
+        # Update velocities and angles
+        self.v1 += self.a1
+        self.v2 += self.a2
+        self.v1 = max(min(self.v1, self.MAX_VELOCITY), -self.MAX_VELOCITY)
+        self.v2 = max(min(self.v2, self.MAX_VELOCITY), -self.MAX_VELOCITY)
+        self.v1 *= self.damping
+        self.v2 *= self.damping
+        self.theta1 += self.v1
+        self.theta2 += self.v2
+
+        # Update bob positions
+        self.update_positions()
+
+    def draw(self, screen):
+        # Draw arms
+        pygame.draw.line(screen, (255, 255, 255), self.origin, self.bob1, 2)
+        pygame.draw.line(screen, (255, 255, 255), self.bob1, self.bob2, 2)
+
+        # Draw bobs
+        pygame.draw.circle(screen, (60, 200, 200), self.bob1, self.bob_radius + 2)
+        pygame.draw.circle(screen, (200, 200, 200), self.bob1, self.bob_radius)
+        pygame.draw.circle(screen, (60, 200, 200), self.bob2, self.bob_radius + 2)
+        pygame.draw.circle(screen, (200, 200, 200), self.bob2, self.bob_radius)
+
+        for trail in self.trails:
+            pygame.draw.rect(screen, (200, 0, 0), pygame.Rect(trail.x, trail.y, 1, 1))
