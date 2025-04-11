@@ -217,6 +217,13 @@ class Spaceship():
         # Blit the rotated surface to the screen
         screen.blit(rotated_surf, rotated_rect.topleft)
 
+    def modify_rect_pos(self, offset_x, offset_y):
+        """
+        Modify the rect position.
+        Used in the shake_screen method after getting hit.
+        """
+        self.rect = pygame.Rect(self.position.x + offset_x, self.position.y + offset_y, self.w, self.h)
+
 class Asteroid():
     
     def __init__(self, x: int, y: int, w: int, h: int, color: tuple,
@@ -306,7 +313,21 @@ class Asteroid():
 
         # Blit the rotated surface
         screen.blit(rotated_surf, rotated_rect.topleft)
+
+    def explode(self):
+        """
+        Animation to make the asteroid explode.
+        Need to be used after an impact with the spaceship
+        """
+        return
     
+    def modify_rect_pos(self, offset_x, offset_y):
+        """
+        Modify the rect position.
+        Used in the shake_screen method after getting hit.
+        """
+        self.rect = pygame.Rect(self.position.x + offset_x, self.position.y + offset_y, self.w, self.h)
+   
 class Oscillator():
     def __init__(self, x: int, y: int, radius: int,angle: float, angle_velocity: pygame.Vector2, amplitude: int, angle_acceleration: pygame.Vector2):
         
@@ -360,3 +381,34 @@ class Wave():
         Update the wave to animate it.
         """
         self.start_angle += self.delta_angle  # Move the wave over time
+
+class Pendulum():
+    def __init__(self, x, y, r, angle, angle_velocity, angle_acceleration, bob_radius = 5):
+        """
+        The pendulum object is composed of a pivot and a bob, the bob position is 
+        """
+        self.r = r
+        self.angle = angle
+        self.pivot_position = pygame.Vector2(x, y)
+        self.bob_position = pygame.Vector2(x + (r * math.sin(math.radians(angle))), y + (r * math.cos(math.radians(angle))))
+        self.bob_radius = bob_radius
+        self.angle_velocity = angle_velocity
+        self.angle_acceleration = angle_acceleration
+        self.damping = 0.999
+
+
+    def update(self, gravity):  
+        """
+        Updates position of the bob using gravity and the tension
+        """
+        self.angle_acceleration = - 1 * gravity.magnitude() * math.sin(math.radians(self.angle)) / self.r
+        self.angle_velocity += self.angle_acceleration
+        self.angle += self.angle_velocity
+        self.angle_velocity *= self.damping
+        self.bob_position = pygame.Vector2(self.pivot_position.x + (self.r * math.sin(math.radians(self.angle))),
+                                            self.pivot_position.y + (self.r * math.cos(math.radians(self.angle))))
+
+    def draw(self, screen):
+        pygame.draw.line(screen, (255, 255, 255), self.pivot_position, self.bob_position)
+        pygame.draw.circle(screen, (60, 200, 200), self.bob_position, self.bob_radius + 3)
+        pygame.draw.circle(screen, (200, 200, 200), self.bob_position, self.bob_radius)
