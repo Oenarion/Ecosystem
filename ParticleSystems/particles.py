@@ -126,7 +126,7 @@ class ExplodingBall():
 
         for i in range(50):
             self.particles.append(Particle(self.position.x, self.position.y, self.color, random.randint(1, self.radius//2),
-                                            pygame.Vector2(random.randint(-10, 10), random.randint(-10, 10))))
+                                            1, pygame.Vector2(random.randint(-10, 10), random.randint(-10, 10))))
 
     def update_position(self, HEIGHT):
         """
