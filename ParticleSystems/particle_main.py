@@ -8,6 +8,8 @@ WIDTH = 640
 HEIGHT = 420
 BACKGROUND_COLOR = (0, 0, 0)
 TIME = time.time()
+MIN_PARTICLES = 10
+MAX_PARTICLES = 200
 
 
 
@@ -19,7 +21,8 @@ def main():
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
     screen.fill(BACKGROUND_COLOR)
-    first_emitter = particles.Emitter(WIDTH//2, 50)
+    first_emitter = particles.Emitter(WIDTH//2, 50, 
+                                      random.randint(MIN_PARTICLES, MAX_PARTICLES))
     gravity = pygame.Vector2(0, 0.1)
     running = True
     
@@ -35,12 +38,15 @@ def main():
 
             if event.type == pygame.MOUSEBUTTONUP:
                 pos = pygame.mouse.get_pos()
-                new_emitter = particles.Emitter(pos[0], pos[1])
+                new_emitter = particles.Emitter(pos[0], pos[1], 
+                                                random.randint(MIN_PARTICLES, MAX_PARTICLES))
                 emitters.append(new_emitter)
 
-        for emitter in emitters:
-            emitter.add_particle()
-            emitter.run(gravity, screen)
+        for i in range(len(emitters)-1, -1, -1):
+            emitters[i].add_particle()
+            emitters[i].run(gravity, screen)
+            if emitters[i].is_dead():
+                emitters.pop(i)
         
         # Update display
         pygame.display.update()
