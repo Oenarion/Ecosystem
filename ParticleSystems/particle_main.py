@@ -44,7 +44,8 @@ def main():
 
         for i in range(len(emitters)-1, -1, -1):
             emitters[i].add_particle()
-            emitters[i].run(gravity, screen)
+            emitters[i].apply_force(gravity)
+            emitters[i].run(screen)
             if emitters[i].is_dead():
                 emitters.pop(i)
         

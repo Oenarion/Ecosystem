@@ -3,9 +3,10 @@ import random
 
 class Particle():
     def __init__(self, x: int, y: int, color: tuple, 
-                 radius: int, velocity = None, acceleration = None):
+                 radius: int, mass = 1, velocity = None, acceleration = None):
         
         self.color = color
+        self.mass = mass
         self.lifespan = 255
         self.radius = radius
         self.rect = pygame.Rect(x - radius, y - radius, radius*2, radius*2)
@@ -22,7 +23,9 @@ class Particle():
         Args:
             - force -> force to be applied
         """
-        self.acceleration += force
+        force_copy = force.copy()
+        f = force_copy / self.mass  
+        self.acceleration += f 
 
     def update_position(self):
         """
@@ -52,8 +55,7 @@ class Particle():
         """
         return self.lifespan < 0
     
-    def run(self, force: pygame.Vector2, screen):
-        self.apply_force(force)
+    def run(self, screen):
         self.update_position()
         self.draw(screen)
 
@@ -62,6 +64,13 @@ class Emitter():
         self.origin_position = pygame.Vector2(origin_x, origin_y)
         self.particles = []
         self.max_particles = max_particles
+
+    def apply_force(self, force):
+        """
+        Apply force to all the particles.
+        """
+        for particle in self.particles:
+            particle.apply_force(force)
 
     def add_particle(self):
         """
@@ -74,12 +83,12 @@ class Emitter():
         self.max_particles -= 1
 
 
-    def run(self, force, screen):
+    def run(self, screen):
         """
         Apply force and draw the particles on the screen
         """
         for i in range(len(self.particles) - 1, -1, -1):
-            self.particles[i].run(force, screen)
+            self.particles[i].run(screen)
             if self.particles[i].is_dead():
                 self.particles.pop(i)
 
