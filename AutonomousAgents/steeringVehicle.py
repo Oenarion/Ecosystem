@@ -16,7 +16,7 @@ def main():
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     escape_target = vehicles.EscapingTarget(WIDTH//2, HEIGHT//2, 10, 0)
     vehicle = vehicles.Vehicle(random.randint(0, WIDTH), random.randint(0, HEIGHT), 
-                               10, (50, 50, 200), pygame.Vector2(1, 2))
+                               20, (50, 50, 200), pygame.Vector2(1, 2))
     screen.fill(BACKGROUND_COLOR)
 
     running = True

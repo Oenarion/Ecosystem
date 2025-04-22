@@ -10,6 +10,7 @@ class Vehicle():
         self.velocity = velocity if velocity is not None else pygame.Vector2(0, 0)
         self.acceleration = acceleration if acceleration is not None else pygame.Vector2(0, 0)
         self.max_speed = 8
+        self.max_force = 0.4
         self.pursuit = False
     
     def change_mode(self):
@@ -57,9 +58,9 @@ class Vehicle():
         desired_speed *= self.max_speed
         steer = desired_speed - self.velocity
         # keep velocity in check
-        if steer.magnitude() > self.max_speed:
+        if steer.magnitude() > self.max_force:
             steer.normalize_ip()
-            steer *= self.max_speed
+            steer *= self.max_force
 
         self.apply_force(steer)
 
