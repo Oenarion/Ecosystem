@@ -238,10 +238,10 @@ class EscapingTarget():
 
 class FlowField():
     def __init__(self, WIDTH: int, HEIGHT: int, cell_size: int, mode: int):
-        # mode 0 random, 1 perlin, 2 circular   
+        # mode 0 random, 1 perlin, 2 circular, 3 points to the center 
         self.cell_size = cell_size
-        self.rows = WIDTH // cell_size
-        self.cols = HEIGHT // cell_size
+        self.rows = HEIGHT // cell_size
+        self.cols = WIDTH // cell_size
         self.center = pygame.Vector2(WIDTH//2, HEIGHT//2)
         self.array = []
         self.mode = mode
@@ -249,11 +249,21 @@ class FlowField():
 
     def initialize_array(self):
         if self.mode == 0:
-            self.array = [[pygame.Vector2(random.uniform(-1, 1), random.uniform(-1, 1)) for _ in range(self.rows)] for _ in range(self.cols)]
+            self.array = [[pygame.Vector2(random.uniform(-1, 1), random.uniform(-1, 1)) for _ in range(self.cols)] for _ in range(self.rows)]
         elif self.mode == 1:
             ...
-        else:
+        elif self.mode == 2:
             ...
+        else:
+            for i in range(self.rows):
+                curr_arr = []
+                for j in range(self.cols):
+                    point_x = j * self.cell_size + self.cell_size // 2
+                    point_y = i * self.cell_size + self.cell_size // 2
+                    angle = math.atan2(self.center.y - point_y, self.center.x - point_x)
+                    curr_arr.append(pygame.Vector2(math.cos(angle), math.sin(angle)))
+                self.array.append(curr_arr) 
+ 
 
     def draw(self, screen):
         for row in range(len(self.array)):
@@ -283,9 +293,9 @@ class FlowField():
 
         Returns the force applied by the flow field in that cell.
         """
-        row = int(position.x // self.cell_size)
-        col = int(position.y // self.cell_size)
+        col = int(position.x // self.cell_size)
+        row = int(position.y // self.cell_size)
 
         if row > 0 and row < self.rows and col > 0 and col < self.cols:
-            return self.array[col][row].copy() 
+            return self.array[row][col].copy() 
         return None
