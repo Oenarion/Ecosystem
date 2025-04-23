@@ -72,12 +72,25 @@ class Vehicle():
 
         self.apply_force(steer)
 
+    def follow(self, flow):
+        """
+        follows the flow field.
+        """
+        desired = flow.lookup(self.position)
+        # out of the flow field
+        if not desired:
+            return
+        desired *= self.max_speed
+        steer = desired - self.velocity
+        steer.normalize_ip()
+        steer *= self.max_force
+        self.apply_force(steer)
+
     def draw(self, screen):
         """
         Draws the rect.
         """
         pygame.draw.rect(screen, self.color, self.rect)
-
 
 class OwnBehaviourVehicle():
     """
@@ -182,9 +195,8 @@ class OwnBehaviourVehicle():
             pygame.draw.circle(screen, (128, 128, 128), self.last_point_seen, 4)
         pygame.draw.rect(screen, self.color, self.rect)
 
-
-
 class EscapingTarget():
+
     def __init__(self, x: int, y: int, radius: int, angle = 0, scale = 100):
         self.angle = angle
         self.radius = radius
@@ -223,3 +235,57 @@ class EscapingTarget():
         """
         pygame.draw.circle(screen, (200, 100, 60), self.position, self.radius + 3)
         pygame.draw.circle(screen, (200, 200, 200), self.position, self.radius)
+
+class FlowField():
+    def __init__(self, WIDTH: int, HEIGHT: int, cell_size: int, mode: int):
+        # mode 0 random, 1 perlin, 2 circular   
+        self.cell_size = cell_size
+        self.rows = WIDTH // cell_size
+        self.cols = HEIGHT // cell_size
+        self.center = pygame.Vector2(WIDTH//2, HEIGHT//2)
+        self.array = []
+        self.mode = mode
+        self.initialize_array()
+
+    def initialize_array(self):
+        if self.mode == 0:
+            self.array = [[pygame.Vector2(random.uniform(-1, 1), random.uniform(-1, 1)) for _ in range(self.rows)] for _ in range(self.cols)]
+        elif self.mode == 1:
+            ...
+        else:
+            ...
+
+    def draw(self, screen):
+        for row in range(len(self.array)):
+            for col in range(len(self.array[0])):
+                vector = self.array[row][col]
+                angle = math.atan2(vector[1], vector[0])  # Already in radians
+
+                # Center of the cell
+                point_x = col * self.cell_size + self.cell_size // 2
+                point_y = row * self.cell_size + self.cell_size // 2
+
+                # Offset in the direction of the vector
+                offset_length = self.cell_size // 2 - 2  # So the arrow stays inside the cell
+                offset_x = math.cos(angle) * offset_length
+                offset_y = math.sin(angle) * offset_length
+
+                # Draw line in the direction of the flow
+                pygame.draw.line(screen, (255, 0, 0), (point_x - offset_x, point_y - offset_y), (point_x + offset_x, point_y + offset_y), 3)
+                pygame.draw.circle(screen, (255, 0, 0), (point_x + offset_x, point_y + offset_y), 3)
+    
+    def lookup(self, position):
+        """
+        Searches for the position of the rect is in the flow field right now.
+
+        Args:
+            - position: vector of the position of the vehicle
+
+        Returns the force applied by the flow field in that cell.
+        """
+        row = int(position.x // self.cell_size)
+        col = int(position.y // self.cell_size)
+
+        if row > 0 and row < self.rows and col > 0 and col < self.cols:
+            return self.array[col][row].copy() 
+        return None
