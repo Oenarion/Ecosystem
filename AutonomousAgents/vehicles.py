@@ -1,6 +1,7 @@
 import pygame
 import math
 import random
+from perlin_noise import PerlinNoise
 
 class Vehicle():
     def __init__(self, x: int, y: int, dim:int, color: tuple,velocity = None, acceleration = None):
@@ -251,9 +252,30 @@ class FlowField():
         if self.mode == 0:
             self.array = [[pygame.Vector2(random.uniform(-1, 1), random.uniform(-1, 1)) for _ in range(self.cols)] for _ in range(self.rows)]
         elif self.mode == 1:
-            ...
+            noise_gen = PerlinNoise(octaves=4)
+            scale = 0.1
+            self.array = []
+
+            for row in range(self.rows):
+                curr_row = []
+                for col in range(self.cols):
+                    # Genera perlin noise in [0,1], then scale it to [0, 2π]
+                    noise_val = noise_gen([col * scale, row * scale])
+                    angle = noise_val * math.tau  # 0 to 2π
+
+                    vec = pygame.Vector2(math.cos(angle), math.sin(angle))
+                    curr_row.append(vec)
+                self.array.append(curr_row)
         elif self.mode == 2:
-            ...
+            for i in range(self.rows):
+                curr_arr = []
+                for j in range(self.cols):
+                    point_x = j * self.cell_size + self.cell_size // 2
+                    point_y = i * self.cell_size + self.cell_size // 2
+                    angle = math.atan2(self.center.y - point_y, self.center.x - point_x)
+                    angle = math.radians(math.degrees(angle)+90)
+                    curr_arr.append(pygame.Vector2(math.cos(angle), math.sin(angle)))
+                self.array.append(curr_arr) 
         else:
             for i in range(self.rows):
                 curr_arr = []
@@ -281,8 +303,8 @@ class FlowField():
                 offset_y = math.sin(angle) * offset_length
 
                 # Draw line in the direction of the flow
-                pygame.draw.line(screen, (255, 0, 0), (point_x - offset_x, point_y - offset_y), (point_x + offset_x, point_y + offset_y), 3)
-                pygame.draw.circle(screen, (255, 0, 0), (point_x + offset_x, point_y + offset_y), 3)
+                pygame.draw.line(screen, (255, 255, 255), (point_x - offset_x, point_y - offset_y), (point_x + offset_x, point_y + offset_y), 3)
+                pygame.draw.circle(screen, (255, 255, 255), (point_x + offset_x, point_y + offset_y), 3)
     
     def lookup(self, position):
         """
