@@ -43,17 +43,46 @@ class Vehicle():
         #update rect position
         self.rect.center = self.position
 
-    def seek(self, target):
+    def seek_segment(self, segment):
+        """
+        
+        """
+        # take direction of the segment and normalize it
+        direction = segment.direction.copy()
+        direction.normalize_ip()
+
+        future = self.velocity.copy()
+        # scale velocity to arbitrary value, i.e. future
+        future.scale_to_length(25)
+        # move curr position to the future
+        future += self.position
+        # compute the vector from the start to the segment to the future
+        a = future - segment.start_pos
+
+        # compute dot product between a vector and direction
+        # in this way we get the position of our normal point
+        direction_projection_length = a.dot(direction)
+        direction.scale_to_length(direction_projection_length)
+        
+        # compute the normal
+        normal_point = segment.start_pos + direction
+        segment_length = segment.direction.length()
+        
+        if direction_projection_length < 0:
+            normal_point = segment.start_pos
+        elif direction_projection_length > segment_length:
+            normal_point = segment.end_pos
+
+        self.seek(normal_point)
+        return normal_point
+
+    def seek(self, target_pos):
         """
         The vehicle seeks the target, implementing a steering force.
 
         Args:
-            - target: the target object, with the position attribute
+            - target_pos: the target object position
         """
-        if self.pursuit:
-            target_pos = target.next_position()
-        else:
-            target_pos = target.position
         
         desired_speed = target_pos - self.position 
         if desired_speed.magnitude() < 100:
@@ -213,7 +242,7 @@ class EscapingTarget():
         x = self.scale * 2*math.sin(math.radians(self.angle))
         y = self.scale * math.sin(math.radians(2*self.angle))
         final_x, final_y = self.center.x + x, self.center.y + y
-        return final_x, final_y
+        return pygame.Vector2(final_x, final_y)
 
     def update_position(self):
         """

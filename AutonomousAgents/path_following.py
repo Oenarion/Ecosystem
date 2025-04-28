@@ -9,23 +9,23 @@ HEIGHT = 420
 BACKGROUND_COLOR = (0, 0, 0)
 TIME = time.time()
 
+def create_new_simulation():
+    segments = paths.define_path(20, 10, WIDTH, HEIGHT)
+    vehicle = vehicles.Vehicle(0, segments[0].start_pos.y, 20, (250, 50, 50), pygame.Vector2(1, 2))
+    path = paths.Path(segments)
+
+    return vehicle, path
 
 def main():
     
     pygame.init()
     clock = pygame.Clock()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
-    # vehicle = vehicles.OwnBehaviourVehicle(random.randint(0, WIDTH), random.randint(0, HEIGHT), 
-    #                            20, (50, 50, 200), pygame.Vector2(1, 2))
-    # x, y = random.randint(100, WIDTH - 100), random.randint(100, HEIGHT - 100)
-    # w, h = random.randint(50, WIDTH - x - 10), random.randint(50, HEIGHT - y - 10)
-    # rect = pygame.Rect(x, y, w, h)
-    segments = paths.define_path(20, 10, WIDTH, HEIGHT)
-    path = paths.Path(segments)
+    vehicle, path = create_new_simulation()
     screen.fill(BACKGROUND_COLOR)
 
     running = True
-
+    point_to_follow = None
     pygame.display.set_caption("My Own Behaviour")
     while running:
         screen.fill(BACKGROUND_COLOR)
@@ -35,7 +35,19 @@ def main():
                 running = False 
 
         
+        center = pygame.Vector2(vehicle.rect.centerx, vehicle.rect.centery)
+        is_contained, segment = path.is_rectangle_contained(center)
+        if not is_contained and segment is not None:
+            point_to_follow = vehicle.seek_segment(segment)
+        print(f"IS RECTANGLE CONTAINED? {is_contained}")
+        vehicle.update()
         path.draw(screen)
+        vehicle.draw(screen)
+        if point_to_follow is not None:
+            pygame.draw.circle(screen, (0, 255, 0), point_to_follow, 2)
+
+        if vehicle.position.x > WIDTH + 20:
+            vehicle, path = create_new_simulation()
 
         # Update display
         pygame.display.update()

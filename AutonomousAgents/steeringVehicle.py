@@ -21,7 +21,7 @@ def main():
 
     running = True
 
-    pygame.display.set_caption("Particle System")
+    pygame.display.set_caption("Steering behaviour")
     while running:
         screen.fill(BACKGROUND_COLOR)
         # Handle events
@@ -36,12 +36,15 @@ def main():
         if random.randint(0, 1000) < 2:
             escape_target.invert_direction()
         
-        vehicle.seek(escape_target)
+        if vehicle.pursuit:
+            vehicle.seek(escape_target.next_position())
+        else:
+            vehicle.seek(escape_target.position)
         vehicle.update()
         escape_target.update_position()
         
-        vehicle.draw(screen)
         escape_target.draw(screen)
+        vehicle.draw(screen)
 
         # Update display
         pygame.display.update()
