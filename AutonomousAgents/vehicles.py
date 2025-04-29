@@ -4,15 +4,15 @@ import random
 from perlin_noise import PerlinNoise
 
 class Vehicle():
-    def __init__(self, x: int, y: int, dim:int, color: tuple,velocity = None, acceleration = None):
+    def __init__(self, x: int, y: int, dim:int, color: tuple,velocity = None, acceleration = None, max_speed = 8, max_force = 0.4):
 
         self.rect = pygame.Rect(x, y, dim, dim)
         self.color = color
         self.position = pygame.Vector2(x, y)
         self.velocity = velocity if velocity is not None else pygame.Vector2(0, 0)
         self.acceleration = acceleration if acceleration is not None else pygame.Vector2(0, 0)
-        self.max_speed = 8
-        self.max_force = 0.4
+        self.max_speed = max_speed
+        self.max_force = max_force
         self.pursuit = False
     
     def change_mode(self):
@@ -27,6 +27,43 @@ class Vehicle():
         Applies force to the acceleration vector
         """
         self.acceleration += force
+
+    def out_of_x_bounds(self, WIDTH):
+        """
+        checks if vehicle is out of bounds on the x axis
+        """
+        if self.position.x + self.rect.width > WIDTH or self.position.x < 0:
+            return True
+
+        return False
+
+    def separate(self, vehicles):
+        """
+        Separate each vehicle from the others by taking the avg diff vector
+        of the vehicle in a certain radius.
+
+        Args:
+            - vehicles: array of the other vehicles
+        """
+        # bigger vehicle, bigger radius
+        separation_distance = self.rect.width * 2
+        count = 0
+        sum_vector = pygame.Vector2(0,0)
+
+        for vehicle in vehicles:
+            distance = self.position.distance_to(vehicle.position)
+            if vehicle.rect != self.rect and distance < separation_distance:
+                diff_vector = self.position.copy() - vehicle.position.copy()
+                # the closer the faster the escape velocity
+                diff_vector.scale_to_length(1 / distance)
+                
+                sum_vector += diff_vector
+                count += 1
+        if count > 0:
+            sum_vector.scale_to_length(self.max_speed)
+            steer = sum_vector - self.velocity
+            steer.scale_to_length(self.max_force)
+            self.apply_force(steer)
 
     def update(self):
         """
@@ -121,6 +158,7 @@ class Vehicle():
         Draws the rect.
         """
         pygame.draw.rect(screen, self.color, self.rect)
+
 
 class OwnBehaviourVehicle():
     """

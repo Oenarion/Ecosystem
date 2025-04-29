@@ -3,11 +3,22 @@ import time
 import vehicles
 import random
 import graphical_components as gc
+import paths
 
 WIDTH = 640
 HEIGHT = 420
 BACKGROUND_COLOR = (0, 0, 0)
 TIME = time.time()
+
+def create_new_simulation(num_vehicles = 20):
+    segments = paths.define_path(20, 10, WIDTH, HEIGHT)
+    vehicles_array = []
+    for _ in range(num_vehicles):
+        vehicle = vehicles.Vehicle(random.randint(0, 50), segments[0].start_pos.y, 5, (250, 50, 50), pygame.Vector2(1, 2))
+        vehicles_array.append(vehicle)
+    path = paths.Path(segments)
+
+    return vehicles_array, path
 
 def main_menu():
     pygame.init()
@@ -15,8 +26,8 @@ def main_menu():
     pygame.display.set_caption("")
     clock = pygame.time.Clock()
 
-    simulation1_button = gc.Button(WIDTH // 2 - 150, HEIGHT // 2 - 150, 300, 50, "Pendulum")
-    simulation2_button = gc.Button(WIDTH // 2 - 150, HEIGHT // 2 - 75, 300, 50, "Double Pendulum")
+    simulation1_button = gc.Button(WIDTH // 2 - 150, HEIGHT // 2 - 150, 300, 50, "Separation")
+    simulation2_button = gc.Button(WIDTH // 2 - 150, HEIGHT // 2 - 75, 300, 50, "PF w Separation")
     exit_button = gc.Button(WIDTH // 2 - 150, HEIGHT // 2, 300, 50, "Exit")
 
     running = True
@@ -58,11 +69,15 @@ def simulation1_main():
     pygame.init()
     clock = pygame.Clock()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
-    vehicle = vehicles.OwnBehaviourVehicle(random.randint(0, WIDTH), random.randint(0, HEIGHT), 
-                               20, (50, 50, 200), pygame.Vector2(1, 2))
-    x, y = random.randint(100, WIDTH - 100), random.randint(100, HEIGHT - 100)
-    w, h = random.randint(50, WIDTH - x - 10), random.randint(50, HEIGHT - y - 10)
-    rect = pygame.Rect(x, y, w, h)
+    num_of_vehicles = random.randint(20, 30)
+    vehicles_array = []
+    for _ in range(num_of_vehicles):
+        vehicle = vehicles.Vehicle(random.randint(0, WIDTH), random.randint(0, HEIGHT), 
+                                random.randint(10, 30), (200, 100, 60), 
+                                pygame.Vector2(random.uniform(-1, 1), random.uniform(-1, 1)),
+                                max_speed = 5, max_force=0.2)
+        vehicles_array.append(vehicle)
+
     screen.fill(BACKGROUND_COLOR)
 
     running = True
@@ -75,14 +90,10 @@ def simulation1_main():
             if event.type == pygame.QUIT:
                 running = False 
 
-        vehicle.compute_new_velocity(rect)
-        vehicle.update()
-
-        pygame.draw.rect(screen, (255, 0, 0), pygame.Rect(rect.left, rect.top, w, 1), 5)
-        pygame.draw.rect(screen, (255, 0, 0), pygame.Rect(rect.right, rect.top, 1, h), 5)
-        pygame.draw.rect(screen, (255, 0, 0), pygame.Rect(rect.left, rect.bottom, w, 1), 5)
-        pygame.draw.rect(screen, (255, 0, 0), pygame.Rect(rect.left, rect.top, 1, h), 5)
-        vehicle.draw(screen)
+        for vehicle in vehicles_array:
+            vehicle.separate(vehicles_array)
+            vehicle.update()
+            vehicle.draw(screen)
 
         # Update display
         pygame.display.update()
@@ -94,15 +105,12 @@ def simulation2_main():
     pygame.init()
     clock = pygame.Clock()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
-    vehicle = vehicles.OwnBehaviourVehicle(random.randint(0, WIDTH), random.randint(0, HEIGHT), 
-                               20, (50, 50, 200), pygame.Vector2(1, 2))
-    x, y = random.randint(100, WIDTH - 100), random.randint(100, HEIGHT - 100)
-    w, h = random.randint(50, WIDTH - x - 10), random.randint(50, HEIGHT - y - 10)
-    rect = pygame.Rect(x, y, w, h)
+    num_of_vehicles = 20
+    vehicles_array, path = create_new_simulation(num_of_vehicles)
     screen.fill(BACKGROUND_COLOR)
 
     running = True
-
+    point_to_follow = None
     pygame.display.set_caption("Path Following with separation")
     while running:
         screen.fill(BACKGROUND_COLOR)
@@ -111,14 +119,25 @@ def simulation2_main():
             if event.type == pygame.QUIT:
                 running = False 
 
-        vehicle.compute_new_velocity(rect)
-        vehicle.update()
+        path.draw(screen)
+        for vehicle in vehicles_array:
+            center = pygame.Vector2(vehicle.rect.centerx, vehicle.rect.centery)
+            is_contained, segment = path.is_rectangle_contained(center)
+            if not is_contained and segment is not None:
+                point_to_follow = vehicle.seek_segment(segment)
+            print(f"IS RECTANGLE CONTAINED? {is_contained}")
+            vehicle.separate(vehicles_array)
+            vehicle.update()
+            vehicle.draw(screen)
 
-        pygame.draw.rect(screen, (255, 0, 0), pygame.Rect(rect.left, rect.top, w, 1), 5)
-        pygame.draw.rect(screen, (255, 0, 0), pygame.Rect(rect.right, rect.top, 1, h), 5)
-        pygame.draw.rect(screen, (255, 0, 0), pygame.Rect(rect.left, rect.bottom, w, 1), 5)
-        pygame.draw.rect(screen, (255, 0, 0), pygame.Rect(rect.left, rect.top, 1, h), 5)
-        vehicle.draw(screen)
+        if point_to_follow is not None:
+            pygame.draw.circle(screen, (0, 255, 0), point_to_follow, 2)
+        
+        out_of_bounds = 0
+        for vehicle in vehicles_array:
+            out_of_bounds += vehicle.out_of_x_bounds(WIDTH)
+            if out_of_bounds == num_of_vehicles:
+                vehicles_array, path = create_new_simulation(num_of_vehicles)
 
         # Update display
         pygame.display.update()
