@@ -26,7 +26,7 @@ def main():
 
     running = True
     point_to_follow = None
-    pygame.display.set_caption("My Own Behaviour")
+    pygame.display.set_caption("Path Following")
     while running:
         screen.fill(BACKGROUND_COLOR)
         # Handle events

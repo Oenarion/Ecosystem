@@ -26,7 +26,7 @@ def main():
     vehicles_array.append(first_vehicle)
     running = True
 
-    pygame.display.set_caption("My Own Behaviour")
+    pygame.display.set_caption("Flow Fields")
     while running:
         screen.fill(BACKGROUND_COLOR)
         # Handle events

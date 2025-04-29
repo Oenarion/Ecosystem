@@ -15,7 +15,7 @@ def update_screen(screen, movers: oscillators.RotatingMover):
 def main_menu():
     pygame.init()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
-    pygame.display.set_caption("Forces Simulation")
+    pygame.display.set_caption("Oscillation Simulation")
     clock = pygame.time.Clock()
 
     simulation1_button = gc.Button(WIDTH // 2 - 150, HEIGHT // 2 - 150, 300, 50, "Rotating objects")
@@ -85,7 +85,7 @@ def simulation1_main():
 
     running = True
 
-    pygame.display.set_caption("Oscillation")
+    pygame.display.set_caption("Rotating objects")
     while running:
         # Handle events
         for event in pygame.event.get():
@@ -130,7 +130,7 @@ def simulation2_main():
 
     accelerate = False
 
-    pygame.display.set_caption("Oscillation")
+    pygame.display.set_caption("Oscillators")
     while running:
         
         screen.fill(BACKGROUND_COLOR)
@@ -166,7 +166,7 @@ def simulation3_main():
     pygame.init()
     clock = pygame.Clock()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
-    pygame.display.set_caption("Superimposed Waves")
+    pygame.display.set_caption("Wave simulation")
 
     num_waves = random.randint(1, 5)
     waves = []

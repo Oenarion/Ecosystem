@@ -93,7 +93,7 @@ def main():
     asteroids = []
     paused = False
 
-    pygame.display.set_caption("Oscillation")
+    pygame.display.set_caption("Spaceship")
     while running:
         # if the game ends
         while paused:

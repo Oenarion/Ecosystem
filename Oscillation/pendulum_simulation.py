@@ -12,7 +12,7 @@ BACKGROUND_COLOR = (0, 0, 0)
 def main_menu():
     pygame.init()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
-    pygame.display.set_caption("Forces Simulation")
+    pygame.display.set_caption("Oscillation Simulation")
     clock = pygame.time.Clock()
 
     simulation1_button = gc.Button(WIDTH // 2 - 150, HEIGHT // 2 - 150, 300, 50, "Pendulum")
@@ -63,7 +63,7 @@ def simulation1_main():
     gravity = pygame.Vector2(0, 40)
     running = True
 
-    pygame.display.set_caption("Oscillation")
+    pygame.display.set_caption("Pendulum")
     while running:
         
         # Handle events
@@ -90,7 +90,7 @@ def simulation2_main():
     gravity = pygame.Vector2(0, random.uniform(0.5, 2))
     running = True
 
-    pygame.display.set_caption("Oscillation")
+    pygame.display.set_caption("Double Pendulum")
     while running:
         
         # Handle events
