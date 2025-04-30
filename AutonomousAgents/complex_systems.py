@@ -188,6 +188,8 @@ def simulation3_main():
                              color = (250, 40, 40), separation_distance = random.randint(50, 200), id_boid = i, 
                              velocity = pygame.Vector2(random.uniform(-1, 1), random.uniform(-1, 1)),
                              max_speed = max_velocity, max_force = max_force)
+        # prepare boid field of view
+        boid.fov()
         boids.append(boid)
 
     running = True
@@ -203,6 +205,16 @@ def simulation3_main():
                 if event.key == pygame.K_TAB:
                     for slider in sliders:
                         slider.invert_toggle()
+
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_q:
+                    for boid in boids:
+                        boid.show_fov = not boid.show_fov
+
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_c:
+                    for boid in boids:
+                        boid.mode = 1 - boid.mode
 
         for slider in sliders:
             slider.handle_event(event)
@@ -222,16 +234,23 @@ def simulation3_main():
                 boid.max_force = max_force
 
         for boid in boids:
+            
+            
             separation_force = boid.separate(boids) * sep_weight
             align_force = boid.align(boids) * align_weight
             cohesion_force = boid.cohesion(boids) * coh_weight
-
+            
             boid.apply_force(separation_force)
             boid.apply_force(align_force)
             boid.apply_force(cohesion_force)
             boid.pac_man_effect(WIDTH, HEIGHT)
-            boid.update()
+
+            boid.fov()
             boid.draw(screen)
+            boid.update()
+            
+            
+            
 
         for slider in sliders:
             slider.draw(screen, FONT)

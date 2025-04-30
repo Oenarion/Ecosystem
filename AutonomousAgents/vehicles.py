@@ -401,7 +401,35 @@ class Boid():
         self.acceleration = acceleration if acceleration is not None else pygame.Vector2(0,0)
         self.max_speed = max_speed
         self.max_force = max_force
+        self.fov_points = ()
+        self.mode = 1
+        self.show_fov = False
 
+    def fov(self):
+        fov_vector = self.velocity.copy()
+        fov_vector.scale_to_length(50)
+        fov_vector_pos = self.position + fov_vector
+        fov_oblique_pos_1 = fov_vector.rotate(45) + self.position
+        fov_oblique_pos_2 = fov_vector.rotate(-45) + self.position
+        fov_points = (self.position, fov_oblique_pos_1, fov_vector_pos, fov_oblique_pos_2)
+        self.fov_points = fov_points
+
+    def contains_point(self, point: pygame.Vector2) -> bool:
+        """
+        I'm just gonna believe this works for now.
+
+        Checks if another boid is inside the field of view.
+        """
+        def sign(p1, p2, p3):
+            return (p1.x - p3.x) * (p2.y - p3.y) - (p2.x - p3.x) * (p1.y - p3.y)
+
+        b1 = sign(point, self.fov_points[0], self.fov_points[1]) < 0.0
+        b2 = sign(point, self.fov_points[1], self.fov_points[2]) < 0.0
+        b3 = sign(point, self.fov_points[2], self.fov_points[3]) < 0.0
+        b4 = sign(point, self.fov_points[3], self.fov_points[0]) < 0.0
+
+        return (b1 == b2 == b3 == b4)
+    
     def apply_force(self, force: pygame.Vector2):
         """
         Applies a force on the object (i.e. gravity), follows Newton's formula F = m x A
@@ -440,20 +468,30 @@ class Boid():
         sum_vector = pygame.Vector2(0,0)
 
         for boid in boids:
-            if boid.id_boid != self.id_boid:
+            if boid.id_boid == self.id_boid:
                 continue
-            distance = self.position.distance_to(boid.position)
-            if distance < self.separation_distance:
-                diff_vector = self.position.copy() - boid.position.copy()
-                if diff_vector.length_squared() == 0:
-                    # If boids are overlapped, avoids random errors
-                    diff_vector = pygame.Vector2(random.uniform(-0.5, 0.5), random.uniform(-0.5, 0.5)).normalize() * 0.1
 
-                # the closer the faster the escape velocity
-                diff_vector.scale_to_length(1 / (distance+0.01))
-                
-                sum_vector += diff_vector
-                count += 1
+            distance = self.position.distance_to(boid.position)
+            if self.mode == 0:
+                if self.contains_point(boid.position):
+                    diff_vector = self.position.copy() - boid.position.copy()
+                    if diff_vector.length_squared() == 0:
+                        # If boids are overlapped, avoids random errors
+                        diff_vector = pygame.Vector2(random.uniform(-0.5, 0.5), random.uniform(-0.5, 0.5)).normalize() * 0.1
+                    # the closer the faster the escape velocity
+                    diff_vector.scale_to_length(1 / (distance+0.01))
+                    sum_vector += diff_vector
+                    count += 1
+            else:
+                if distance < self.separation_distance:
+                    diff_vector = self.position.copy() - boid.position.copy()
+                    if diff_vector.length_squared() == 0:
+                        # If boids are overlapped, avoids random errors
+                        diff_vector = pygame.Vector2(random.uniform(-0.5, 0.5), random.uniform(-0.5, 0.5)).normalize() * 0.1
+                    # the closer the faster the escape velocity
+                    diff_vector.scale_to_length(1 / (distance+0.01))
+                    sum_vector += diff_vector
+                    count += 1
 
         if count > 0:
             sum_vector.scale_to_length(self.max_speed)
@@ -479,12 +517,18 @@ class Boid():
         count = 0
 
         for boid in boids:
-            if boid.id_boid != self.id_boid:
+            if boid.id_boid == self.id_boid:
                 continue
-            distance = self.position.distance_to(boid.position)
-            if distance < self.separation_distance:
-                sum_velocity += boid.velocity
-                count += 1
+            if self.mode == 0:
+                if self.contains_point(boid.position):
+                    sum_velocity += boid.velocity
+                    count += 1
+            else:
+                distance = self.position.distance_to(boid.position)
+                if distance < self.separation_distance:
+                    sum_velocity += boid.velocity
+                    count += 1
+            
 
         if count > 0:
             sum_velocity /= count
@@ -513,13 +557,19 @@ class Boid():
         count = 0
 
         for boid in boids:
-            if boid.id_boid != self.id_boid:
+            if boid.id_boid == self.id_boid:
                 continue
-            distance = self.position.distance_to(boid.position)
-            if distance < self.separation_distance:
-                sum_position += boid.position
-                count += 1
 
+            if self.mode == 0:
+                if self.contains_point(boid.position):
+                    sum_position += boid.position
+                    count += 1
+            else:
+                distance = self.position.distance_to(boid.position)
+                if distance < self.separation_distance:
+                    sum_position += boid.position
+                    count += 1
+                
         if count > 0:
             sum_position /= count
             if sum_position.length_squared() < 1e-5:
@@ -547,5 +597,8 @@ class Boid():
         self.acceleration *= 0
 
     def draw(self, screen):
+        if self.show_fov and self.mode == 1:
+            pygame.draw.polygon(screen, (255, 0, 0), self.fov_points)
         pygame.draw.circle(screen, (255, 255, 255), self.position, self.radius + 2)
         pygame.draw.circle(screen, self.color, self.position, self.radius)
+        
