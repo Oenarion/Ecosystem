@@ -20,6 +20,12 @@ def create_new_simulation(num_vehicles = 20):
 
     return vehicles_array, path
 
+def update_text(text, font, pos, screen):
+    text_surface = font.render(text, True, (255, 255, 255))
+    text_rect = text_surface.get_rect(center=pos)
+
+    screen.blit(text_surface, text_rect)
+
 def main_menu():
     pygame.init()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -158,16 +164,30 @@ def simulation2_main():
 def simulation3_main():
     
     pygame.init()
+    FONT =  pygame.font.Font(None, 24)
+    
+    max_velocity = 3
+    max_force = 0.2
+
+    sliders = [
+        gc.Slider(10, 40, 120, 10, 0.1, 3, 1, toggle=False, label="Separation Multiplier"),
+        gc.Slider(10, 90, 120, 10, 0.1, 3, 1, toggle=False, label="Alignment Multiplier"),
+        gc.Slider(10, 140, 120, 10, 0.1, 3, 1, toggle=False, label="Cohesion Multiplier"),
+        gc.Slider(WIDTH - 170, 40, 120, 10, 0.1, 10, max_velocity, toggle=False, label="Max velocity"),
+        gc.Slider(WIDTH - 170, 90, 120, 10, 0.1, 2, max_force, toggle=False, label="Max force")
+    ]
+
     clock = pygame.Clock()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     screen.fill(BACKGROUND_COLOR)
-    number_of_boids = random.randint(10, 30)
+    number_of_boids = random.randint(50, 150)
     boids = []
     for i in range(number_of_boids):
         boid = vehicles.Boid(x = random.randint(WIDTH//2 - 10, WIDTH//2 + 10), 
                              y = random.randint(HEIGHT//2 - 10, HEIGHT//2 + 10), radius = 3, 
                              color = (250, 40, 40), separation_distance = random.randint(50, 200), id_boid = i, 
-                             velocity=pygame.Vector2(random.uniform(-1, 1), random.uniform(-1, 1)))
+                             velocity = pygame.Vector2(random.uniform(-1, 1), random.uniform(-1, 1)),
+                             max_speed = max_velocity, max_force = max_force)
         boids.append(boid)
 
     running = True
@@ -179,21 +199,42 @@ def simulation3_main():
             if event.type == pygame.QUIT:
                 running = False 
 
-        for boid in boids:
-            separation_force = boid.separate(boids)
-            align_force = boid.align(boids)
-            cohesion_force = boid.cohesion(boids)
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_TAB:
+                    for slider in sliders:
+                        slider.invert_toggle()
 
-            # separation_force *= 2
-            # align_force *= 1.5
-            # cohesion_force *= 0.5
+        for slider in sliders:
+            slider.handle_event(event)
+
+        sep_weight = sliders[0].current_val
+        align_weight = sliders[1].current_val
+        coh_weight = sliders[2].current_val
+
+        if sliders[3].current_val != max_velocity:
+            max_velocity = sliders[3].current_val
+            for boid in boids:
+                boid.max_speed = max_velocity
+
+        if sliders[4].current_val != max_force:
+            max_force = sliders[4].current_val
+            for boid in boids:
+                boid.max_force = max_force
+
+        for boid in boids:
+            separation_force = boid.separate(boids) * sep_weight
+            align_force = boid.align(boids) * align_weight
+            cohesion_force = boid.cohesion(boids) * coh_weight
 
             boid.apply_force(separation_force)
             boid.apply_force(align_force)
             boid.apply_force(cohesion_force)
-
+            boid.pac_man_effect(WIDTH, HEIGHT)
             boid.update()
             boid.draw(screen)
+
+        for slider in sliders:
+            slider.draw(screen, FONT)
 
         # Update display
         pygame.display.update()

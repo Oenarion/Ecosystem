@@ -4,92 +4,72 @@ import math
 
 ## SLIDER CLASS
 class Slider:
-    def __init__(self, x, y, width, height, min_val, max_val, initial_val):
-        """
-        Create a slider for selecting a value between min and max
-        
-        Args:
-        x, y: Position of slider
-        width, height: Dimensions of slider area
-        min_val, max_val: Range of values
-        initial_val: Starting value
-        """
+    def __init__(self, x, y, width, height, min_val, max_val, initial_val, toggle=True, interval=0.1, label=""):
         self.rect = pygame.Rect(x, y, width, height)
         self.min_val = min_val
         self.max_val = max_val
-        
-        # Slider handle
+        self.interval = interval
+        self.label = label
+
         self.handle_width = 20
-        self.handle_height = 40
-        self.handle_color = (200, 200, 200)
-        self.handle_hover_color = (230, 230, 230)
-        
-        # Set initial value
+        self.handle_height = height + 10
+        self.handle_color = (200, 200, 200, 180)  # semi-transparent
+        self.track_color = (100, 100, 100, 180)   # semi-transparent
+
         self.current_val = initial_val
         self.calculate_handle_position()
-        
-        # Dragging state
+
+        self.toggle = toggle
         self.is_dragging = False
-    
+
     def calculate_handle_position(self):
-        """
-        Calculate the x position of the slider handle based on current value
-        """
-        # Map current value to slider width
         normalized = (self.current_val - self.min_val) / (self.max_val - self.min_val)
-        # Computes new slider positions and ensures it is in bounds with the slider
         self.handle_x = self.rect.x + normalized * (self.rect.width - self.handle_width)
-        # Create the corresponding rect
         self.handle_rect = pygame.Rect(
-            self.handle_x, 
-            self.rect.y - (self.handle_height - self.rect.height) // 2, 
-            self.handle_width, 
+            self.handle_x,
+            self.rect.y - (self.handle_height - self.rect.height) // 2,
+            self.handle_width,
             self.handle_height
         )
-    
-    def draw(self, screen):
-        """
-        Draw the slider on the screen
-        """
-        # Draw slider track
-        pygame.draw.rect(screen, (100, 100, 100), self.rect)
-        
-        # Draw handle
-        pygame.draw.rect(screen, self.handle_color, self.handle_rect)
-        
-        # Draw value text
-        font = pygame.font.Font(None, 24)
-        text = font.render(str(int(self.current_val)), True, (255, 255, 255))
-        text_rect = text.get_rect(center=(self.rect.centerx, self.rect.bottom + 30))
-        screen.blit(text, text_rect)
-    
+
+    def invert_toggle(self):
+        self.toggle = not self.toggle
+
+    def draw(self, screen, font):
+        if self.toggle:
+            # Draw semi-transparent track and handle
+            track_surface = pygame.Surface((self.rect.width, self.rect.height), pygame.SRCALPHA)
+            pygame.draw.rect(track_surface, self.track_color, track_surface.get_rect())
+            screen.blit(track_surface, self.rect.topleft)
+
+            handle_surface = pygame.Surface((self.handle_width, self.handle_height), pygame.SRCALPHA)
+            pygame.draw.rect(handle_surface, self.handle_color, handle_surface.get_rect())
+            screen.blit(handle_surface, self.handle_rect.topleft)
+
+            # Draw label above the slider
+            label_text = font.render(self.label, True, (255, 255, 255))
+            screen.blit(label_text, (self.rect.x, self.rect.y - 20))
+
+            # Draw current value to the right
+            val_text = font.render(f"{self.current_val:.2f}", True, (255, 255, 255))
+            screen.blit(val_text, (self.rect.right + 10, self.rect.y - 2))
+
     def handle_event(self, event):
-        """
-        Handle mouse events for the slider
-        """
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            if self.handle_rect.collidepoint(event.pos):
-                self.is_dragging = True
-        
+        if not self.toggle:
+            return self.current_val
+
+        if event.type == pygame.MOUSEBUTTONDOWN and self.handle_rect.collidepoint(event.pos):
+            self.is_dragging = True
         elif event.type == pygame.MOUSEBUTTONUP:
             self.is_dragging = False
-        
-        elif event.type == pygame.MOUSEMOTION:
-            if self.is_dragging:
-                # Calculate new handle position
-                mouse_x = max(self.rect.x, min(event.pos[0], self.rect.right - self.handle_width))
-                
-                # Map mouse position to slider value
-                normalized = (mouse_x - self.rect.x) / (self.rect.width - self.handle_width)
-                self.current_val = self.min_val + normalized * (self.max_val - self.min_val)
-                
-                # Snap to integer
-                self.current_val = round(self.current_val)
+        elif event.type == pygame.MOUSEMOTION and self.is_dragging:
+            mouse_x = max(self.rect.x, min(event.pos[0], self.rect.right - self.handle_width))
+            normalized = (mouse_x - self.rect.x) / (self.rect.width - self.handle_width)
+            self.current_val = round((self.min_val + normalized * (self.max_val - self.min_val)) / self.interval) * self.interval
+            self.calculate_handle_position()
 
-                # # Recalculate handle position
-                self.calculate_handle_position()
-        
-        return int(self.current_val)
+        return self.current_val
+
 
 
 ## BUTTON CLASS

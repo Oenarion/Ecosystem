@@ -413,6 +413,19 @@ class Boid():
         f = force_copy / self.mass  
         self.acceleration += f
 
+    def pac_man_effect(self, WIDTH, HEIGHT):
+        """
+        Let the boid spawn on the other side of the canvas once the borders are reached.
+        """
+        if self.position.x > WIDTH:
+            self.position.x = 0
+        if self.position.x < 0:
+            self.position.x = WIDTH - self.radius
+        if self.position.y > HEIGHT:
+            self.position.y = 0
+        if self.position.y < 0:
+            self.position.y = HEIGHT - self.radius
+
     def separate(self, boids):
         """
         Separate each boid from the others by taking the avg diff vector
@@ -475,16 +488,13 @@ class Boid():
 
         if count > 0:
             sum_velocity /= count
-            print(f"velocity: {sum_velocity}")
             if sum_velocity.length_squared() < 1e-5:
                 sum_velocity = pygame.Vector2(random.uniform(-0.5, 0.5), random.uniform(-0.5, 0.5)).normalize() * 0.1
             sum_velocity.scale_to_length(self.max_speed)
             steer = sum_velocity - self.velocity
-            print(f"steer 1: {steer}")
             if steer.length_squared() < 1e-5:
                 # If steer has length 0
                 steer = pygame.Vector2(random.uniform(-0.5, 0.5), random.uniform(-0.5, 0.5)).normalize() * 0.1
-                print(f"steer 2: {steer}")
             steer.scale_to_length(self.max_force)
             return steer
         else:
