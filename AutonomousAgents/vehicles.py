@@ -159,7 +159,6 @@ class Vehicle():
         """
         pygame.draw.rect(screen, self.color, self.rect)
 
-
 class OwnBehaviourVehicle():
     """
     The own behaviour vehicle should simulate the behaviour of moving towards a random point 
@@ -388,3 +387,155 @@ class FlowField():
         if row > 0 and row < self.rows and col > 0 and col < self.cols:
             return self.array[row][col].copy() 
         return None
+    
+
+class Boid():
+    def __init__(self, x: int, y: int, radius: int, color: tuple, separation_distance: int, id_boid: int, mass:int = 1, velocity = None, acceleration = None, max_speed = 3, max_force = 0.2):
+        self.position = pygame.Vector2(x, y)
+        self.radius = radius
+        self.color = color
+        self.mass = mass
+        self.separation_distance = separation_distance
+        self.id_boid = id_boid
+        self.velocity = velocity if velocity is not None else pygame.Vector2(0,0)
+        self.acceleration = acceleration if acceleration is not None else pygame.Vector2(0,0)
+        self.max_speed = max_speed
+        self.max_force = max_force
+
+    def apply_force(self, force: pygame.Vector2):
+        """
+        Applies a force on the object (i.e. gravity), follows Newton's formula F = m x A
+
+        Args:
+            - force -> force to be applied
+        """
+        force_copy = force.copy()
+        f = force_copy / self.mass  
+        self.acceleration += f
+
+    def separate(self, boids):
+        """
+        Separate each boid from the others by taking the avg diff vector
+        of the boid in a certain radius.
+
+        Args:
+            - boids: array of the other boids
+
+        Returns steer velocity applying Reynold's formula or 0 if no boid is close enough.
+        """
+        count = 0
+        sum_vector = pygame.Vector2(0,0)
+
+        for boid in boids:
+            if boid.id_boid != self.id_boid:
+                continue
+            distance = self.position.distance_to(boid.position)
+            if distance < self.separation_distance:
+                diff_vector = self.position.copy() - boid.position.copy()
+                if diff_vector.length_squared() == 0:
+                    # If boids are overlapped, avoids random errors
+                    diff_vector = pygame.Vector2(random.uniform(-0.5, 0.5), random.uniform(-0.5, 0.5)).normalize() * 0.1
+
+                # the closer the faster the escape velocity
+                diff_vector.scale_to_length(1 / (distance+0.01))
+                
+                sum_vector += diff_vector
+                count += 1
+
+        if count > 0:
+            sum_vector.scale_to_length(self.max_speed)
+            steer = sum_vector - self.velocity
+            if steer.length_squared() < 1e-5:
+                # If steer has length 0
+                steer = pygame.Vector2(random.uniform(-0.5, 0.5), random.uniform(-0.5, 0.5)).normalize() * 0.1
+            steer.scale_to_length(self.max_force)
+            return steer 
+        else:
+            return pygame.Vector2(0, 0)
+
+    def align(self, boids):
+        """
+        Align the boid to the average velocity of the other boids
+
+        Args:
+            - boids: array of the other boids
+
+        Returns steer velocity applying Reynold's formula.
+        """
+        sum_velocity = pygame.Vector2(0, 0)
+        count = 0
+
+        for boid in boids:
+            if boid.id_boid != self.id_boid:
+                continue
+            distance = self.position.distance_to(boid.position)
+            if distance < self.separation_distance:
+                sum_velocity += boid.velocity
+                count += 1
+
+        if count > 0:
+            sum_velocity /= count
+            print(f"velocity: {sum_velocity}")
+            if sum_velocity.length_squared() < 1e-5:
+                sum_velocity = pygame.Vector2(random.uniform(-0.5, 0.5), random.uniform(-0.5, 0.5)).normalize() * 0.1
+            sum_velocity.scale_to_length(self.max_speed)
+            steer = sum_velocity - self.velocity
+            print(f"steer 1: {steer}")
+            if steer.length_squared() < 1e-5:
+                # If steer has length 0
+                steer = pygame.Vector2(random.uniform(-0.5, 0.5), random.uniform(-0.5, 0.5)).normalize() * 0.1
+                print(f"steer 2: {steer}")
+            steer.scale_to_length(self.max_force)
+            return steer
+        else:
+            return pygame.Vector2(0, 0)
+    
+    def cohesion(self, boids):
+        """
+        Align the boid to the average position of the other boids
+
+        Args:
+            - boids: array of the other boids
+
+        Returns steer velocity applying Reynold's formula.
+        """
+        sum_position = pygame.Vector2(0, 0)
+        count = 0
+
+        for boid in boids:
+            if boid.id_boid != self.id_boid:
+                continue
+            distance = self.position.distance_to(boid.position)
+            if distance < self.separation_distance:
+                sum_position += boid.position
+                count += 1
+
+        if count > 0:
+            sum_position /= count
+            if sum_position.length_squared() < 1e-5:
+                sum_position = pygame.Vector2(random.uniform(-0.5, 0.5), random.uniform(-0.5, 0.5)).normalize() * 0.1
+            steer = sum_position - self.velocity
+            if steer.length_squared() < 1e-5:
+                # If steer has length 0
+                steer = pygame.Vector2(random.uniform(-0.5, 0.5), random.uniform(-0.5, 0.5)).normalize() * 0.1
+            steer.scale_to_length(self.max_force)
+            return steer
+        else:
+            return pygame.Vector2(0, 0)
+
+    def update(self):
+        """
+        Updates position of the object.
+        """
+        self.velocity += self.acceleration
+        
+        if self.velocity.magnitude() > self.max_speed:
+            self.velocity.normalize_ip()
+            self.velocity *= self.max_speed
+        
+        self.position += self.velocity
+        self.acceleration *= 0
+
+    def draw(self, screen):
+        pygame.draw.circle(screen, (255, 255, 255), self.position, self.radius + 2)
+        pygame.draw.circle(screen, self.color, self.position, self.radius)

@@ -28,7 +28,8 @@ def main_menu():
 
     simulation1_button = gc.Button(WIDTH // 2 - 150, HEIGHT // 2 - 150, 300, 50, "Separation")
     simulation2_button = gc.Button(WIDTH // 2 - 150, HEIGHT // 2 - 75, 300, 50, "PF w Separation")
-    exit_button = gc.Button(WIDTH // 2 - 150, HEIGHT // 2, 300, 50, "Exit")
+    simulation3_button = gc.Button(WIDTH // 2 - 150, HEIGHT // 2, 300, 50, "Flocking")
+    exit_button = gc.Button(WIDTH // 2 - 150, HEIGHT // 2 + 75, 300, 50, "Exit")
 
     running = True
     while running:
@@ -52,6 +53,9 @@ def main_menu():
                     pygame.quit()
                     simulation2_main()
 
+                if simulation3_button.is_hovered(event.pos):
+                    pygame.quit()
+                    simulation3_main()
                 
                 if exit_button.is_hovered(event.pos):
                     pygame.quit()
@@ -59,6 +63,7 @@ def main_menu():
                 
         simulation1_button.draw(screen)
         simulation2_button.draw(screen)
+        simulation3_button.draw(screen)
         exit_button.draw(screen)
 
         pygame.display.update()
@@ -98,6 +103,9 @@ def simulation1_main():
         # Update display
         pygame.display.update()
         clock.tick(60)
+
+    pygame.quit()
+    main_menu()
 
 
 def simulation2_main():
@@ -142,6 +150,57 @@ def simulation2_main():
         # Update display
         pygame.display.update()
         clock.tick(60)
+    
+    pygame.quit()
+    main_menu()
+
+
+def simulation3_main():
+    
+    pygame.init()
+    clock = pygame.Clock()
+    screen = pygame.display.set_mode((WIDTH, HEIGHT))
+    screen.fill(BACKGROUND_COLOR)
+    number_of_boids = random.randint(10, 30)
+    boids = []
+    for i in range(number_of_boids):
+        boid = vehicles.Boid(x = random.randint(WIDTH//2 - 10, WIDTH//2 + 10), 
+                             y = random.randint(HEIGHT//2 - 10, HEIGHT//2 + 10), radius = 3, 
+                             color = (250, 40, 40), separation_distance = random.randint(50, 200), id_boid = i, 
+                             velocity=pygame.Vector2(random.uniform(-1, 1), random.uniform(-1, 1)))
+        boids.append(boid)
+
+    running = True
+    pygame.display.set_caption("Flocking")
+    while running:
+        screen.fill(BACKGROUND_COLOR)
+        # Handle events
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False 
+
+        for boid in boids:
+            separation_force = boid.separate(boids)
+            align_force = boid.align(boids)
+            cohesion_force = boid.cohesion(boids)
+
+            # separation_force *= 2
+            # align_force *= 1.5
+            # cohesion_force *= 0.5
+
+            boid.apply_force(separation_force)
+            boid.apply_force(align_force)
+            boid.apply_force(cohesion_force)
+
+            boid.update()
+            boid.draw(screen)
+
+        # Update display
+        pygame.display.update()
+        clock.tick(60)
+
+    pygame.quit()
+    main_menu()
 
 
 if __name__ == "__main__":
