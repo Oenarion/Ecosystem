@@ -42,6 +42,28 @@ def restart_simulation(rows: int, cols: int) -> list:
 
     return grid
 
+def update_grid(grid: list) -> list:
+    """
+    updates the grid in the correct way, had issues with updating the same variable twice.
+
+    Args:
+        - grid -> grid of values.
+    """
+    rows, cols = len(grid), len(grid[0])
+    new_grid = [[0 for _ in range(cols)] for _ in range(rows)]
+    
+    for i in range(rows):
+        for j in range(cols):
+            cell = grid[i][j]
+            neighbours = get_neighbours_sum(i, j, grid)
+            if cell == 1:
+                if 2 <= neighbours <= 3:
+                    new_grid[i][j] = 1
+            else:
+                if neighbours == 3:
+                    new_grid[i][j] = 1
+    return new_grid
+
 def draw(screen, grid: list) -> None:
     for i in range(len(grid)):
         for j in range(len(grid[0])):
@@ -63,8 +85,6 @@ def main():
                 grid[i][j] = 1
             else:
                 grid[i][j] = 0
-    
-    copy_of_grid = grid.copy()
 
     screen.fill(BACKGROUND_COLOR)
 
@@ -81,20 +101,8 @@ def main():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_r:
                     grid = restart_simulation(rows, cols)
-                    copy_of_grid = grid.copy()
 
-        for i in range(len(grid)):
-            for j in range(len(grid[0])):
-                curr_cell = grid[i][j]
-                neighbours_cells = get_neighbours_sum(i, j, grid)
-                if curr_cell == 1:
-                    if neighbours_cells >= 4 or neighbours_cells <= 1:
-                        copy_of_grid[i][j] = 0
-                else:
-                    if neighbours_cells == 3:
-                        copy_of_grid[i][j] = 1
-
-        grid = copy_of_grid
+        grid = update_grid(grid)
 
         draw(screen, grid)
         # Update display
