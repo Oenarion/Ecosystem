@@ -44,7 +44,7 @@ def main_menu():
     clock = pygame.time.Clock()
 
     simulation1_button = gc.Button(WIDTH // 2 - 150, HEIGHT // 2 - 150, 300, 50, "Circle zoom")
-    simulation2_button = gc.Button(WIDTH // 2 - 150, HEIGHT // 2 - 75, 300, 50, "Double circle fractal")
+    simulation2_button = gc.Button(WIDTH // 2 - 150, HEIGHT // 2 - 75, 300, 50, "Quadruple circle fractal")
     exit_button = gc.Button(WIDTH // 2 - 150, HEIGHT // 2, 300, 50, "Exit")
 
     running = True
@@ -70,8 +70,7 @@ def main_menu():
                     simulation2_main()
 
                 if exit_button.is_hovered(event.pos):
-                    pygame.quit()
-                    return False  # Exit application
+                    running = False
                 
         simulation1_button.draw(screen)
         simulation2_button.draw(screen)
@@ -80,6 +79,7 @@ def main_menu():
         pygame.display.update()
         clock.tick(60)
 
+    pygame.quit()
 
 def simulation1_main():
     
@@ -126,7 +126,7 @@ def simulation2_main():
 
     running = True
 
-    pygame.display.set_caption("Double Circle Fractal")
+    pygame.display.set_caption("Quadruple Circle Fractal")
     while running:
         screen.fill(BACKGROUND_COLOR)
         # Handle events
