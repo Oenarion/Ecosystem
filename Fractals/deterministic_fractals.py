@@ -9,65 +9,6 @@ HEIGHT = 500
 BACKGROUND_COLOR = (0, 0, 0)
 TIME = time.time()
 
-def cantor(screen, start_pos: pygame.Vector2, end_pos: pygame.Vector2, variation = False, type = 0):
-
-    curve = end_pos - start_pos
-
-    if curve.magnitude() < 1:
-        return
-    
-    segment = curve / 3
-
-    p1 = start_pos
-    p2 = start_pos + segment
-    p3 = start_pos + segment * 2
-    p4 = end_pos
-
-    normal = pygame.Vector2(-segment.y, segment.x)
-    normal.scale_to_length(20)
-
-    pygame.draw.line(screen, (255, 255, 255), p1, p2, 2)
-    pygame.draw.line(screen, (255, 255, 255), p3, p4, 2)
-
-
-    if variation and curve.magnitude() / 3 >= 1:
-        padding = 5
-        line_length = 10
-
-        normal_copy = normal.copy()
-        normal_copy.normalize_ip()
-
-        seg1 = p2 - p1
-        seg2 = p4 - p3
-
-        # 1/3 and 2/3 of the segments
-        line_points = [
-            p1 + seg1 * (1/6),
-            p1 + seg1 * (5/6),
-            p3 + seg2 * (1/6),
-            p3 + seg2 * (5/6)
-        ]
-
-        for point in line_points:
-            # Upper line
-            pygame.draw.line(screen, (255, 255, 255), point + normal_copy * padding, point + normal_copy * (padding + line_length))
-            # Below line
-            pygame.draw.line(screen, (255, 255, 255), point - normal_copy * padding, point - normal_copy * (padding + line_length))
-        
-        #Circles between lines
-        pygame.draw.circle(screen, (255, 255, 255), (p2 + p3) / 2, segment.magnitude()/2, width=1)
-        pygame.draw.circle(screen, (255, 255, 255), (p2 + p3) / 2, segment.magnitude()/3, width=1)
-        pygame.draw.circle(screen, (255, 255, 255), (p2 + p3) / 2, segment.magnitude()/6, width=1)
-
-    if type == 1 or type == 0:
-        cantor(screen, p1+normal, p2+normal, variation, 1)
-        cantor(screen, p3+normal, p4+normal, variation, 1)
-
-    if type == 2 or type == 0:
-        cantor(screen, p1-normal, p2-normal, variation, 2)
-        cantor(screen, p3-normal, p4-normal, variation, 2)
-
-
 def main_menu():
     pygame.init()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -76,7 +17,8 @@ def main_menu():
 
     simulation1_button = gc.Button(WIDTH // 2 - 150, HEIGHT // 2 - 150, 300, 50, "Cantor Set")
     simulation2_button = gc.Button(WIDTH // 2 - 150, HEIGHT // 2 - 50, 300, 50, "Koch Curve")
-    exit_button = gc.Button(WIDTH // 2 - 150, HEIGHT // 2 + 50, 300, 50, "Exit")
+    simulation3_button = gc.Button(WIDTH // 2 - 150, HEIGHT // 2 + 50, 300, 50, "Koch Snowflake")
+    exit_button = gc.Button(WIDTH // 2 - 150, HEIGHT // 2 + 150, 300, 50, "Exit")
 
     running = True
     while running:
@@ -89,6 +31,7 @@ def main_menu():
 
             simulation1_button.handle_event(event)
             simulation2_button.handle_event(event)
+            simulation3_button.handle_event(event)
             exit_button.handle_event(event)
 
             if event.type == pygame.MOUSEBUTTONDOWN:
@@ -100,11 +43,16 @@ def main_menu():
                     pygame.quit()
                     simulation2_main()
 
+                if simulation3_button.is_hovered(event.pos):
+                    pygame.quit()
+                    simulation3_main()
+
                 if exit_button.is_hovered(event.pos):
                     running = False
                 
         simulation1_button.draw(screen)
         simulation2_button.draw(screen)
+        simulation3_button.draw(screen)
         exit_button.draw(screen)
 
         pygame.display.update()
@@ -191,6 +139,58 @@ def simulation2_main():
 
         koch.draw(screen)
         # koch_curve(screen, start_pos, end_pos, depth)
+
+        depth_slider.draw(screen, FONT)
+        # Update display
+        pygame.display.update()
+        clock.tick(30)
+    main_menu()
+
+def simulation3_main():
+    pygame.init()
+    FONT =  pygame.font.Font(None, 24)
+    clock = pygame.Clock()
+    screen = pygame.display.set_mode((WIDTH, HEIGHT))
+
+    screen.fill(BACKGROUND_COLOR)
+    depth_slider = gc.Slider(x=10, y=40, width=120, height=10, min_val=1, max_val=5, initial_val=1, toggle=True, interval=1, label="Depth")
+    depth = depth_slider.current_val
+    old_depth_val = depth_slider.current_val
+    start_pos, end_pos = pygame.Vector2(WIDTH//3,HEIGHT*2//3), pygame.Vector2(WIDTH*2//3, HEIGHT*2//3)
+
+    direction = end_pos - start_pos
+    angle = math.radians(-60)
+    rotated = pygame.Vector2(
+        direction.x * math.cos(angle) - direction.y * math.sin(angle),
+        direction.x * math.sin(angle) + direction.y * math.cos(angle)
+    )
+    third_pos = start_pos + rotated
+
+    kochs = [do.KochCurve(start_pos, end_pos, depth, 1), 
+             do.KochCurve(start_pos, third_pos, depth), 
+             do.KochCurve(third_pos, end_pos, depth)]
+    running = True
+
+    pygame.display.set_caption("Koch Curve")
+    while running:
+        screen.fill(BACKGROUND_COLOR)
+        # Handle events
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False 
+
+            depth_slider.handle_event(event)
+
+        depth = depth_slider.current_val
+        if depth != old_depth_val:
+            kochs_array = []
+            for koch in kochs:
+                kochs_array.append(do.KochCurve(koch.start_pos, koch.end_pos, depth, koch.rotation_sign))
+            old_depth_val = depth
+            kochs = kochs_array
+
+        for koch in kochs:
+            koch.draw(screen)
 
         depth_slider.draw(screen, FONT)
         # Update display

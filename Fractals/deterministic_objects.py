@@ -95,61 +95,42 @@ class CantorSet():
 
 
 class KochCurve():
-    def __init__(self, start_pos, end_pos, depth):
+    def __init__(self, start_pos, end_pos, depth, rotation_sign = -1):
+        self.start_pos = start_pos
+        self.end_pos = end_pos
+        self.depth = depth
+        self.rotation_sign = rotation_sign
         self.lines = []
         self.add_segment(start_pos, end_pos, depth)
 
-    def compute_line_points(self):
-        """
-        Function used to compute the five points of the koch curve.
-        """
-        curve = self.end_pos - self.start_pos
-        segment = curve / 3
-
-        a = self.start_pos
-        b = self.start_pos + segment
-        d = self.start_pos + segment * 2
-        e = self.end_pos 
-
-        # to compute c
-        direction = d - b
-        angle = math.radians(-60)
-        rotated = pygame.Vector2(
-            direction.x * math.cos(angle) - direction.y * math.sin(angle),
-            direction.x * math.sin(angle) + direction.y * math.cos(angle)
-        )
-        
-        c = b + rotated
-
-        return [a, b, c, d, e]
     
     def add_segment(self, start_pos, end_pos, depth):
         """
-        Funzione ricorsiva che costruisce la Koch curve.
+        Adds segments to the Koch curve.
         """
         if depth == 0:
             self.lines.append(Line(start_pos, end_pos))
             return
         
-        # Calcola i 5 punti della curva di Koch
         curve = end_pos - start_pos
         segment = curve / 3
 
+        # get the 4 vertices
         a = start_pos
         b = start_pos + segment
         d = start_pos + segment * 2
         e = end_pos 
 
-        # Calcolo del punto c tramite rotazione
+        #compute the koch "tooth", the fifth vertix
         direction = d - b
-        angle = math.radians(-60)
+        angle = math.radians(self.rotation_sign * 60)
         rotated = pygame.Vector2(
             direction.x * math.cos(angle) - direction.y * math.sin(angle),
             direction.x * math.sin(angle) + direction.y * math.cos(angle)
         )
         c = b + rotated
 
-        # Ricorsione sui 4 sottosegmenti
+        # recursion
         self.add_segment(a, b, depth - 1)
         self.add_segment(b, c, depth - 1)
         self.add_segment(c, d, depth - 1)
