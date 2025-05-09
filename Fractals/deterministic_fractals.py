@@ -1,10 +1,11 @@
 import pygame
 import time
 import graphical_components as gc
+import deterministic_objects as do
 import math
 
 WIDTH = 640
-HEIGHT = 420
+HEIGHT = 500
 BACKGROUND_COLOR = (0, 0, 0)
 TIME = time.time()
 
@@ -26,7 +27,6 @@ def cantor(screen, start_pos: pygame.Vector2, end_pos: pygame.Vector2, variation
     normal.scale_to_length(20)
 
     pygame.draw.line(screen, (255, 255, 255), p1, p2, 2)
-    
     pygame.draw.line(screen, (255, 255, 255), p3, p4, 2)
 
 
@@ -67,15 +67,16 @@ def cantor(screen, start_pos: pygame.Vector2, end_pos: pygame.Vector2, variation
         cantor(screen, p1-normal, p2-normal, variation, 2)
         cantor(screen, p3-normal, p4-normal, variation, 2)
 
+
 def main_menu():
     pygame.init()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
-    pygame.display.set_caption("")
+    pygame.display.set_caption("Main menu")
     clock = pygame.time.Clock()
 
     simulation1_button = gc.Button(WIDTH // 2 - 150, HEIGHT // 2 - 150, 300, 50, "Cantor Set")
-    simulation2_button = gc.Button(WIDTH // 2 - 150, HEIGHT // 2 - 75, 300, 50, "Koch Curve")
-    exit_button = gc.Button(WIDTH // 2 - 150, HEIGHT // 2, 300, 50, "Exit")
+    simulation2_button = gc.Button(WIDTH // 2 - 150, HEIGHT // 2 - 50, 300, 50, "Koch Curve")
+    exit_button = gc.Button(WIDTH // 2 - 150, HEIGHT // 2 + 50, 300, 50, "Exit")
 
     running = True
     while running:
@@ -116,14 +117,16 @@ def simulation1_main():
     pygame.init()
     clock = pygame.Clock()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
+    
     start_pos, end_pos = pygame.Vector2(0,HEIGHT//2), pygame.Vector2(WIDTH, HEIGHT//2)
-
     center = pygame.Vector2(WIDTH // 2, HEIGHT // 2)
     half_len = WIDTH // 2
     angle_step = 1
     angle = 0
-
     variation = False
+
+    cantor_set = do.CantorSet(start_pos, end_pos, center, half_len, angle, variation)
+
     screen.fill(BACKGROUND_COLOR)
 
     running = True
@@ -139,35 +142,35 @@ def simulation1_main():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_c:
                     variation = not variation
+                    cantor_set = do.CantorSet(start_pos, end_pos, center, half_len, cantor_set.angle, variation)
 
                 if event.key == pygame.K_n:
                     angle_step = 1 - angle_step
 
                 if event.key == pygame.K_r:
-                    angle = 0
+                    cantor_set.angle = 0
         
-        angle += angle_step
-
-        # direction vector to rotate the cantor set
-        dir_vec = pygame.Vector2(half_len, 0).rotate(angle) 
-        start_pos = center - dir_vec
-        end_pos = center + dir_vec
-
-        cantor(screen, start_pos, end_pos, variation)
-
+        
+        cantor_set.rotate(angle_step)
+        cantor_set.draw(screen)
         # Update display
         pygame.display.update()
         clock.tick(60)
     main_menu()
 
 def simulation2_main():
-    
     pygame.init()
+    FONT =  pygame.font.Font(None, 24)
     clock = pygame.Clock()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
     screen.fill(BACKGROUND_COLOR)
+    depth_slider = gc.Slider(x=10, y=40, width=120, height=10, min_val=1, max_val=5, initial_val=1, toggle=True, interval=1, label="Depth")
+    depth = depth_slider.current_val
+    old_depth_val = depth_slider.current_val
+    start_pos, end_pos = pygame.Vector2(0,HEIGHT//2), pygame.Vector2(WIDTH, HEIGHT//2)
 
+    koch = do.KochCurve(start_pos, end_pos, depth)
     running = True
 
     pygame.display.set_caption("Koch Curve")
@@ -178,6 +181,18 @@ def simulation2_main():
             if event.type == pygame.QUIT:
                 running = False 
 
+            depth_slider.handle_event(event)
+
+        depth = depth_slider.current_val
+        # print(depth, old_depth_val)
+        if depth != old_depth_val:
+            koch = do.KochCurve(start_pos, end_pos, depth)
+            old_depth_val = depth
+
+        koch.draw(screen)
+        # koch_curve(screen, start_pos, end_pos, depth)
+
+        depth_slider.draw(screen, FONT)
         # Update display
         pygame.display.update()
         clock.tick(30)
