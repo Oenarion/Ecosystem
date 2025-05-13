@@ -148,3 +148,38 @@ class Line():
 
     def draw(self, screen):
         pygame.draw.line(screen, (255, 255, 255), self.start_pos, self.end_pos, 2)
+
+
+
+class Tree():
+    def __init__(self, start_pos: pygame.Vector2, end_pos: pygame.Vector2, decay_rate: float, angle = 5, max_depth = 10):
+        self.start_pos = start_pos
+        self.end_pos = end_pos
+        self.decay_rate = decay_rate
+        self.angle = angle
+        self.max_depth = max_depth
+        self.branches = []
+        self.generate_tree(start_pos, end_pos, 0)
+
+    def generate_tree(self, start_pos, end_pos, current_depth):
+        if current_depth >= self.max_depth:
+            return
+
+        self.branches.append(Line(start_pos, end_pos))
+
+        direction = (end_pos - start_pos)
+        direction_length = direction.length()
+        direction = direction.normalize() * direction_length * self.decay_rate
+
+        rotated_right = direction.rotate(self.angle)
+        right_end = end_pos + rotated_right
+        self.generate_tree(end_pos, right_end, current_depth + 1)
+
+        rotated_left = direction.rotate(-self.angle)
+        left_end = end_pos + rotated_left
+        self.generate_tree(end_pos, left_end, current_depth + 1)
+
+    def draw(self, screen):
+        for branch in self.branches:
+            branch.draw(screen)
+        
