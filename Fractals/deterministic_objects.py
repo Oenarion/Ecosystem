@@ -1,6 +1,6 @@
 import pygame
 import math
-
+import time
 import pygame
 
 class CantorSet():
@@ -93,7 +93,6 @@ class CantorSet():
             elif item[0] == "circle":
                 pygame.draw.circle(screen, (255, 255, 255), item[1], item[2], width=1)
 
-
 class KochCurve():
     def __init__(self, start_pos, end_pos, depth, rotation_sign = -1):
         self.start_pos = start_pos
@@ -140,32 +139,32 @@ class KochCurve():
         for line in self.lines:
             line.draw(screen)
 
-
 class Line():
-    def __init__(self, start_pos, end_pos):
+    def __init__(self, start_pos, end_pos, width = 2):
         self.start_pos = start_pos
         self.end_pos = end_pos
+        self.width = width
 
     def draw(self, screen):
-        pygame.draw.line(screen, (255, 255, 255), self.start_pos, self.end_pos, 2)
-
-
+        pygame.draw.line(screen, (255, 255, 255), self.start_pos, self.end_pos, self.width)
 
 class Tree():
-    def __init__(self, start_pos: pygame.Vector2, end_pos: pygame.Vector2, decay_rate: float, angle = 5, max_depth = 10):
+    def __init__(self, start_pos: pygame.Vector2, end_pos: pygame.Vector2, decay_rate: float, angle = 5, max_depth = 10, width = 10):
         self.start_pos = start_pos
         self.end_pos = end_pos
         self.decay_rate = decay_rate
         self.angle = angle
         self.max_depth = max_depth
+        self.width = width
         self.branches = []
-        self.generate_tree(start_pos, end_pos, 0)
+        self.generate_tree(start_pos, end_pos, 0, self.width)
 
-    def generate_tree(self, start_pos, end_pos, current_depth):
+    def generate_tree(self, start_pos, end_pos, current_depth, curr_width):
         if current_depth >= self.max_depth:
             return
 
-        self.branches.append(Line(start_pos, end_pos))
+        self.branches.append(Line(start_pos, end_pos, curr_width))
+        curr_width = round(curr_width * 0.7)
 
         direction = (end_pos - start_pos)
         direction_length = direction.length()
@@ -173,13 +172,75 @@ class Tree():
 
         rotated_right = direction.rotate(self.angle)
         right_end = end_pos + rotated_right
-        self.generate_tree(end_pos, right_end, current_depth + 1)
+        self.generate_tree(end_pos, right_end, current_depth + 1, curr_width)
 
         rotated_left = direction.rotate(-self.angle)
         left_end = end_pos + rotated_left
-        self.generate_tree(end_pos, left_end, current_depth + 1)
+        self.generate_tree(end_pos, left_end, current_depth + 1, curr_width)
 
     def draw(self, screen):
         for branch in self.branches:
             branch.draw(screen)
         
+class AnimatedLine():
+    def __init__(self, start_pos, end_pos, width = 2, percentage = 100):
+        self.start_pos = start_pos
+        self.end_pos = end_pos
+        self.width = width
+        self.percentage = percentage
+
+    def draw(self, screen):
+        current_end = self.start_pos.lerp(self.end_pos, self.percentage)
+        pygame.draw.line(screen, (255, 255, 255), self.start_pos, current_end, self.width)
+
+class SlowTree:
+    def __init__(self, start_pos: pygame.Vector2, end_pos: pygame.Vector2, decay_rate: float, angle=5, max_depth=10, width=10):
+        self.start_pos = start_pos
+        self.end_pos = end_pos
+        self.decay_rate = decay_rate
+        self.angle = angle
+        self.frames = 20
+        self.curr_frame = 0
+        self.max_depth = max_depth
+        self.width = width
+        self.branches = []
+        self.to_generate = [(start_pos, end_pos, 0, self.width)]  # Queue of branches to grow
+
+    def update(self):
+        """Call this every frame or periodically to grow the tree"""
+        if self.to_generate:
+            start_pos, end_pos, current_depth, curr_width = self.to_generate.pop(0)
+            self.curr_frame += 1
+            if current_depth >= self.max_depth:
+                return
+
+            if self.curr_frame > 20:
+                self.curr_frame = 0
+                self.branches.append(Line(start_pos, end_pos, curr_width))
+                curr_width = round(curr_width * 0.7)
+
+                direction = (end_pos - start_pos)
+                direction_length = direction.length()
+                if direction_length == 0:  # Safety check
+                    return
+                direction = direction.normalize() * direction_length * self.decay_rate
+
+                rotated_right = direction.rotate(self.angle)
+                right_end = end_pos + rotated_right
+                self.to_generate.append((end_pos, right_end, current_depth + 1, curr_width))
+
+                rotated_left = direction.rotate(-self.angle)
+                left_end = end_pos + rotated_left
+                self.to_generate.append((end_pos, left_end, current_depth + 1, curr_width))
+            else:
+                # curr_len / tot_len = curr_frame / tot_frame -> curr_len = (curr_frame * tot_len) / tot_frame
+                percentage = self.curr_frame / self.frames
+                self.branches.append(AnimatedLine(start_pos, end_pos, curr_width, percentage))
+                self.to_generate.insert(0, (start_pos, end_pos, current_depth, curr_width))
+
+
+            
+
+    def draw(self, screen):
+        for branch in self.branches:
+            branch.draw(screen)

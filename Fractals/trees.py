@@ -16,8 +16,8 @@ def main_menu():
     clock = pygame.time.Clock()
 
     simulation1_button = gc.Button(WIDTH // 2 - 150, HEIGHT // 2 - 150, 300, 50, "Deterministic Tree")
-    simulation2_button = gc.Button(WIDTH // 2 - 150, HEIGHT // 2 - 50, 300, 50, "Random Tree")
-    exit_button = gc.Button(WIDTH // 2 - 150, HEIGHT // 2 + 150, 300, 50, "Exit")
+    simulation2_button = gc.Button(WIDTH // 2 - 150, HEIGHT // 2 - 75, 300, 50, "Step by step Tree")
+    exit_button = gc.Button(WIDTH // 2 - 150, HEIGHT // 2, 300, 50, "Exit")
 
     running = True
     while running:
@@ -112,15 +112,15 @@ def simulation1_main():
 
 def simulation2_main():
     pygame.init()
-    FONT =  pygame.font.Font(None, 24)
     clock = pygame.Clock()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
+    tree = do.SlowTree(pygame.Vector2(WIDTH//2, 400), pygame.Vector2(WIDTH//2, 300), decay_rate=0.8, angle=60, width=7)
 
     screen.fill(BACKGROUND_COLOR)
     
     running = True
 
-    pygame.display.set_caption("TO DO")
+    pygame.display.set_caption("Slow generating tree")
     while running:
         screen.fill(BACKGROUND_COLOR)
         # Handle events
@@ -128,9 +128,12 @@ def simulation2_main():
             if event.type == pygame.QUIT:
                 running = False 
 
+        tree.update()
+        tree.draw(screen)
+
         # Update display
         pygame.display.update()
-        clock.tick(30)
+        clock.tick(60)
     main_menu()
 
 
