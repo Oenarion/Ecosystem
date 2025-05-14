@@ -1,5 +1,4 @@
 import pygame
-import cmath
 
 class ComplexPlane:
     def __init__(self, screen, width, height, center=0+0j, scale=100):
