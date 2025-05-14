@@ -33,3 +33,10 @@ class ComplexPlane:
     def draw_axes(self, color=(200, 200, 200)):
         pygame.draw.line(self.screen, color, (0, self.height//2), (self.width, self.height//2))  # x-axis
         pygame.draw.line(self.screen, color, (self.width//2, 0), (self.width//2, self.height))  # y-axis
+
+    def zoom_at(self, px, zoom_factor):
+        """Zooms toward a pixel coordinate by adjusting scale and center."""
+        before = self.screen_to_complex(px)
+        self.scale *= zoom_factor
+        after = self.screen_to_complex(px)
+        self.center += before - after  # Shift center to keep zoom target fixed
