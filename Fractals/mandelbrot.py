@@ -110,15 +110,16 @@ def main():
         if 0 <= x < WIDTH // 2:
             c = left_plane.screen_to_complex((x, y))
             if c != prev_c and not stop_mouse_position:
+                prev_c = c
                 for j in range(HEIGHT):
                     for i in range(WIDTH // 2):
                         z = left_plane.screen_to_complex((i, j))
                         m = julia_set(z, c, MAX_ITER)
                         julia_data[j, i] = colors[m]
 
-            combined = np.zeros((HEIGHT, WIDTH, 3), dtype=np.uint8)
-            combined[:, :WIDTH//2] = mandelbrot_rgb
-            combined[:, WIDTH//2:] = julia_data
+        combined = np.zeros((HEIGHT, WIDTH, 3), dtype=np.uint8)
+        combined[:, :WIDTH//2] = mandelbrot_rgb
+        combined[:, WIDTH//2:] = julia_data
 
         pygame.surfarray.blit_array(screen, combined.swapaxes(0, 1))
         pygame.display.flip()
