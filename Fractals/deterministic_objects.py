@@ -1,7 +1,6 @@
 import pygame
 import math
-import time
-import pygame
+import random
 
 class CantorSet():
     def __init__(self, start_pos, end_pos, center, half_len, angle, variation=False):
@@ -233,13 +232,47 @@ class SlowTree:
                 left_end = end_pos + rotated_left
                 self.to_generate.append((end_pos, left_end, current_depth + 1, curr_width))
             else:
-                # curr_len / tot_len = curr_frame / tot_frame -> curr_len = (curr_frame * tot_len) / tot_frame
                 percentage = self.curr_frame / self.frames
                 self.branches.append(AnimatedLine(start_pos, end_pos, curr_width, percentage))
                 self.to_generate.insert(0, (start_pos, end_pos, current_depth, curr_width))
 
+    def draw(self, screen):
+        for branch in self.branches:
+            branch.draw(screen)
 
-            
+class RandomTree():
+    def __init__(self, start_pos: pygame.Vector2, end_pos: pygame.Vector2, decay_rate: float):
+        """
+        Yes I know it's not deterministic, I didn't want to create another file just for this class get over it.
+        """
+        self.start_pos = start_pos
+        self.end_pos = end_pos
+        self.decay_rate = decay_rate
+        self.max_depth = random.randint(3, 10)
+        self.branches = []
+        self.generate_tree(start_pos, end_pos, 0)
+
+    def generate_tree(self, start_pos, end_pos, current_depth):
+        if current_depth >= self.max_depth:
+            return
+
+        self.branches.append(Line(start_pos, end_pos))
+
+        direction = (end_pos - start_pos)
+        direction_length = direction.length()
+        direction = direction.normalize() * direction_length * self.decay_rate
+
+        
+        num_of_branches = random.randint(1, 4)
+
+        for _ in range(num_of_branches):
+            rotated_branch = direction.rotate(random.randint(-90, 90))
+            branch_end = end_pos + rotated_branch
+            self.generate_tree(end_pos, branch_end, current_depth + 1)        
+
+    def generate_new_tree(self):
+        self.branches = []
+        self.generate_tree(self.start_pos, self.end_pos,0)
 
     def draw(self, screen):
         for branch in self.branches:

@@ -2,7 +2,6 @@ import pygame
 import time
 import graphical_components as gc
 import deterministic_objects as do
-import math
 
 WIDTH = 640
 HEIGHT = 500
@@ -17,7 +16,8 @@ def main_menu():
 
     simulation1_button = gc.Button(WIDTH // 2 - 150, HEIGHT // 2 - 150, 300, 50, "Deterministic Tree")
     simulation2_button = gc.Button(WIDTH // 2 - 150, HEIGHT // 2 - 75, 300, 50, "Step by step Tree")
-    exit_button = gc.Button(WIDTH // 2 - 150, HEIGHT // 2, 300, 50, "Exit")
+    simulation3_button = gc.Button(WIDTH // 2 - 150, HEIGHT // 2, 300, 50, "Random Tree")
+    exit_button = gc.Button(WIDTH // 2 - 150, HEIGHT // 2 + 75, 300, 50, "Exit")
 
     running = True
     while running:
@@ -30,6 +30,7 @@ def main_menu():
 
             simulation1_button.handle_event(event)
             simulation2_button.handle_event(event)
+            simulation3_button.handle_event(event)
             exit_button.handle_event(event)
 
             if event.type == pygame.MOUSEBUTTONDOWN:
@@ -40,12 +41,17 @@ def main_menu():
                 if simulation2_button.is_hovered(event.pos):
                     pygame.quit()
                     simulation2_main()
+                
+                if simulation3_button.is_hovered(event.pos):
+                    pygame.quit()
+                    simulation3_main()
 
                 if exit_button.is_hovered(event.pos):
                     running = False
                 
         simulation1_button.draw(screen)
         simulation2_button.draw(screen)
+        simulation3_button.draw(screen)
         exit_button.draw(screen)
 
         pygame.display.update()
@@ -136,6 +142,31 @@ def simulation2_main():
         clock.tick(60)
     main_menu()
 
+
+def simulation3_main():
+    pygame.init()
+    clock = pygame.Clock()
+    screen = pygame.display.set_mode((WIDTH, HEIGHT))
+    tree = do.RandomTree(pygame.Vector2(WIDTH//2, 400), pygame.Vector2(WIDTH//2, 300), decay_rate=0.8)
+
+    screen.fill(BACKGROUND_COLOR)
+    
+    running = True
+
+    pygame.display.set_caption("Slow generating tree")
+    while running:
+        screen.fill(BACKGROUND_COLOR)
+        # Handle events
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False 
+
+        tree.draw(screen)
+        tree.generate_new_tree()
+        # Update display
+        pygame.display.update()
+        clock.tick(60)
+    main_menu()
 
 if __name__ == "__main__":
     main_menu()
