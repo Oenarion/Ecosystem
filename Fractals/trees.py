@@ -153,7 +153,7 @@ def simulation3_main():
     
     running = True
 
-    pygame.display.set_caption("Slow generating tree")
+    pygame.display.set_caption("Random tree")
     while running:
         screen.fill(BACKGROUND_COLOR)
         # Handle events
