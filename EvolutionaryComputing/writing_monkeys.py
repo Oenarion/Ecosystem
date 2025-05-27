@@ -3,13 +3,14 @@ import time
 import random
 from DNA import DNA
 import numpy as np
+import math
 
 WIDTH = 640
 HEIGHT = 420
 BACKGROUND_COLOR = (0, 0, 0)
 TIME = time.time()
 
-population_length = 160
+population_length = 2000
  
 TARGET = "CACATO NEL PUZZONG"
 
@@ -92,18 +93,20 @@ def main():
 
         if evolve:
             scores = []
+            tot_score = 0
             screen.fill(BACKGROUND_COLOR)
             # compute fitness
             for i, phrase in enumerate(population):
                 phrase.fitness_score(TARGET)
                 scores.append((phrase.score, i))
+                tot_score += phrase.score
             
             scores.sort(reverse=True)
             top_phrases = []
             for i in range(14):
                 top_phrases.append(population[scores[i][1]])
 
-            avg_score = np.mean(scores)
+            avg_score = tot_score / len(scores)
             # stop evolution if we got the phrase correctly
             if scores[0][0] == 1.0:
 
