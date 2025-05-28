@@ -43,6 +43,10 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False 
+
+            if event.type == pygame.MOUSEBUTTONUP:
+                mouse_x, mouse_y = pygame.mouse.get_pos()
+                target = Target(mouse_x, mouse_y, 10)
             
         screen.fill(BACKGROUND_COLOR)    
         if life_passed < lifespan:
