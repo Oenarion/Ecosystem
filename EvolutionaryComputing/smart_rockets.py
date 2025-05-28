@@ -1,7 +1,7 @@
 import pygame
 import time
 import random
-from DNA import DNA, Rocket, Population
+from DNA import Population, Target
 import numpy as np
 import math
 
@@ -13,35 +13,13 @@ lifespan = 500
 population_length = 40
  
 
-def draw(screen, phrases, generations, avg_score, mutation_factor, font):
-    start_x = (WIDTH // 2) + 50
-    start_y = 10
-
-    counter = 0
-    for i in range(len(phrases)-1, -1, -1):
-        text = font.render(phrases[i].get_phrase(), True, (255, 255, 255))
-        screen.blit(text, (start_x, start_y + 30*counter))
-        counter += 1
+def draw(screen, generation, lifespan, font):
     
-    best_text = font.render("Best phrase", True, (0, 255, 0))  # verde brillante
-    screen.blit(best_text, (10, 50))
+    generation_text = font.render(f"Generation: {generation}", True, (255, 255, 255))  # verde brillante
+    screen.blit(generation_text, (10, 10))
 
-    best_font = pygame.font.Font(None, 40)
-    best_text = best_font.render(phrases[0].get_phrase(), True, (0, 255, 0))  # verde brillante
-    screen.blit(best_text, (10, 100))
-
-    curr_generations = font.render(f"Total generations: {generations}", True, (255, 255, 255))
-    screen.blit(curr_generations, (10, 200))
-
-    curr_fitness = font.render(f"Average score: {avg_score}", True, (255, 255, 255))
-    screen.blit(curr_fitness, (10, 230))
-
-    curr_mutation = font.render(f"Mutation factor: {mutation_factor}", True, (255, 255, 255))
-    screen.blit(curr_mutation, (10, 260))
-
-    curr_mutation = font.render(f"Press +/- to increase/decrease mutation", True, (255, 255, 255))
-    screen.blit(curr_mutation, (10, 390))
-
+    lifespan_text = font.render(f"Lifespan left: {lifespan}", True, (255, 255, 255))
+    screen.blit(lifespan_text, (10, 40))
 
 
 def main():
@@ -51,10 +29,11 @@ def main():
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     screen.fill(BACKGROUND_COLOR)
     FONT = pygame.font.Font(None, 24)
-    lifespan = 90
+    lifespan = 60
     life_passed = 0
-    mutation_factor = 1
-    target = Rocket(WIDTH//2, 20, 10, 100)
+    generation = 0
+    mutation_factor = 5
+    target = Target(WIDTH//2, 20, 10)
     population = Population(population_length, WIDTH//2, HEIGHT - 10, lifespan, mutation_factor, target)
     running = True
 
@@ -74,9 +53,11 @@ def main():
             population.normalize_fitness()
             population.reproduction()
             life_passed = 0
+            generation += 1
 
         target.draw(screen)
         population.draw(screen)
+        draw(screen, generation, lifespan - life_passed, FONT)
         # Update display
         pygame.display.update()
         clock.tick(30)

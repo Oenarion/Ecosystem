@@ -81,7 +81,7 @@ class DNA():
             # avoid bias towards diagonals by taking polar coordinates
             direction = pygame.Vector2(math.cos(angle), math.sin(angle))
             direction.scale_to_length(1)
-            direction *= max(0, self.max_force)
+            direction *= random.uniform(0.1, self.max_force)
             self.genes.append(direction)
 
     def crossover(self, partner):
@@ -111,7 +111,7 @@ class DNA():
                 angle = random.uniform(0, 2 * math.pi)
                 direction = pygame.Vector2(math.cos(angle), math.sin(angle))
                 direction.scale_to_length(1)
-                direction *= max(0, self.max_force)
+                direction *= random.uniform(0.1, self.max_force)
                 break
     
 class Rocket():
@@ -156,7 +156,7 @@ class Rocket():
             - target: the target to reach
         """
         dist = (target.position - self.position).magnitude()
-        self.fitness = 1 / dist
+        self.fitness = 1 / (dist+0.0001)
 
     def run(self):
         
@@ -222,7 +222,9 @@ class Population():
             parentB = self.weighted_selection()
             child = parentA.crossover(parentB)
             child.mutate()
-            new_population.append(Rocket(self.start_x, self.start_y, 3, self.lifespan, 1.5, mutation_factor=self.mutation_factor))
+            new_rocket = Rocket(self.start_x, self.start_y, 3, self.lifespan, 1.5, mutation_factor=self.mutation_factor)
+            new_rocket.dna = child
+            new_population.append(new_rocket)
 
         self.population = new_population
 
@@ -233,3 +235,12 @@ class Population():
     def draw(self, screen):
         for rocket in self.population:
             rocket.draw(screen)
+
+
+class Target:
+    def __init__(self, x, y, radius):
+        self.position = pygame.Vector2(x, y)
+        self.radius = radius
+
+    def draw(self, screen):
+        pygame.draw.circle(screen, (255, 0, 0), self.position, self.radius)
