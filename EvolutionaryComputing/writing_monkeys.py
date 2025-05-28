@@ -1,7 +1,7 @@
 import pygame
 import time
 import random
-from DNA import DNA
+from DNA import DNA_string
 import numpy as np
 import math
 
@@ -68,7 +68,7 @@ def main():
     mutation_factor = 1
     generations = 0
     for _ in range(population_length):
-        population.append(DNA(len(TARGET), mutation_factor))
+        population.append(DNA_string(len(TARGET), mutation_factor))
 
     running = True
 
