@@ -1,7 +1,7 @@
 import pygame
 import time
 import random
-from DNA import Population, Target
+from DNA import SmartPopulation, Target, Obstacle
 import numpy as np
 import math
 
@@ -29,12 +29,13 @@ def main():
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     screen.fill(BACKGROUND_COLOR)
     FONT = pygame.font.Font(None, 24)
-    lifespan = 60
+    lifespan = 120
     life_passed = 0
     generation = 0
-    mutation_factor = 5
-    target = Target(WIDTH//2, 20, 10)
-    population = Population(population_length, WIDTH//2, HEIGHT - 10, lifespan, mutation_factor, target)
+    mutation_factor = 10
+    obstacles = [Obstacle(280, 300, 60, 10, (255, 0, 0)), Obstacle(200, 150, 60, 10, (255, 0, 0)), Obstacle(360, 150, 60, 10, (255, 0, 0))]
+    target = Obstacle(WIDTH//2-5, 20, 10, 10, (0, 255, 0))
+    population = SmartPopulation(population_length, WIDTH//2, HEIGHT - 10, lifespan, mutation_factor, target, obstacles)
     running = True
 
     pygame.display.set_caption("Writing Monkeys")
@@ -46,7 +47,7 @@ def main():
 
             if event.type == pygame.MOUSEBUTTONUP:
                 mouse_x, mouse_y = pygame.mouse.get_pos()
-                target = Target(mouse_x, mouse_y, 10)
+                target = Obstacle(mouse_x, mouse_y, 10, 10, (0, 255, 0))
             
         screen.fill(BACKGROUND_COLOR)    
         if life_passed < lifespan:
@@ -61,6 +62,8 @@ def main():
 
         target.draw(screen)
         population.draw(screen)
+        for obstacle in obstacles:
+            obstacle.draw(screen)
         draw(screen, generation, lifespan - life_passed, FONT)
         # Update display
         pygame.display.update()
