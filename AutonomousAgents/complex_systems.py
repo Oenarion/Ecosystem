@@ -48,6 +48,7 @@ def main_menu():
 
             simulation1_button.handle_event(event)
             simulation2_button.handle_event(event)
+            simulation3_button.handle_event(event)
             exit_button.handle_event(event)
 
             if event.type == pygame.MOUSEBUTTONDOWN:
