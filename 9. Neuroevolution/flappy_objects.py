@@ -38,6 +38,10 @@ class Bird():
                 idx = i
                 break
         
+        # surpassed the current pipe
+        if idx > 0:
+            self.fitness += 10
+
         inputs = torch.tensor([self.y / height,
                   self.velocity / height,
                   pipes[idx].bottom_pipe.y / height,
@@ -66,7 +70,7 @@ class Bird():
         child = Bird(self.x, height//2, child_brain)
         return child
 
-    def mutate(self, mutation_rate = 0.05, mutation_strength = 0.1):
+    def mutate(self, mutation_rate = 0.1, mutation_strength = 0.2):
         for param in self.brain.parameters():
             if len(param.shape) == 2:  # matrices
                 mask = torch.rand_like(param) < mutation_rate
@@ -80,6 +84,7 @@ class Bird():
 
     def flap(self):
         self.velocity += self.flap_force
+        
 
     def update(self, HEIGHT):
         self.velocity += self.gravity
@@ -94,6 +99,7 @@ class Bird():
             self.y = self.radius
 
         self.rect.y = self.y - self.radius
+
         #update fitness function
         self.fitness += 1
 
@@ -141,7 +147,11 @@ class BirdPopulation():
         if self.check_bird_are_dead():
             new_birds = []
             self.normalize_fitness()
-            for _ in range(len(self.birds)):
+            self.birds.sort(key=lambda b: b.fitness, reverse=True)
+            elite = self.birds[:10]  # keep ten best performing birds
+            new_birds = elite.copy() 
+
+            for _ in range(len(self.birds)-len(new_birds)):
                 parentA = self.weighted_selection()
                 parentB = self.weighted_selection()
                 child = parentA.crossover(parentB.brain, height)
@@ -156,7 +166,7 @@ class BirdPopulation():
                     collision, _ = pipes[idx].collision(bird.rect)
                     if collision:
                         bird.alive = False
-                        print("DEAD!")
+                        bird.fitness -= 10
                     else:
                         bird.update(height)
             return False

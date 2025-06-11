@@ -6,7 +6,7 @@ WIDTH = 640
 HEIGHT = 420
 BACKGROUND_COLOR = (0, 0, 0)
 TIME = time.time()
-NUM_BIRDS = 30
+NUM_BIRDS = 100
 
 
 
@@ -20,8 +20,9 @@ def main():
     flappy_birds = BirdPopulation(NUM_BIRDS, 50, HEIGHT//2)
     pipe_generator = PipeGenerator(100, HEIGHT, WIDTH, 120)
     running = True
-
+    pause_visualization = False
     pygame.display.set_caption("Flappy Bird")
+
     while running:
         screen.fill(BACKGROUND_COLOR)
         # Handle events
@@ -29,19 +30,27 @@ def main():
             if event.type == pygame.QUIT:
                 running = False 
 
+            if event.type ==  pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    pause_visualization = not pause_visualization
+
         restart_simulation = flappy_birds.run(pipe_generator.pipes, HEIGHT, WIDTH)        
         if restart_simulation:
+            print("Restart simulation!")
             pipe_generator = PipeGenerator(100, HEIGHT, WIDTH, 120)
-            
+
         pipe_generator.delete_old_pipes()
         pipe_generator.update()
 
-        pipe_generator.draw(screen)
-        flappy_birds.draw(screen)
-
+        
         # Update display
-        pygame.display.update()
-        clock.tick(30)
+        if pause_visualization:
+            clock.tick(0)
+        else:
+            pipe_generator.draw(screen)
+            flappy_birds.draw(screen)
+            pygame.display.update()
+            clock.tick(100)
 
 
 
