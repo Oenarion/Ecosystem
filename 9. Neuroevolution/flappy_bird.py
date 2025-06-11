@@ -1,6 +1,8 @@
 import pygame
 import time
 from flappy_objects import Bird, PipeGenerator
+import os
+
 
 WIDTH = 640
 HEIGHT = 420
@@ -18,6 +20,12 @@ def main():
     screen.fill(BACKGROUND_COLOR)
     FONT = pygame.font.Font(None, 24)
     flappy_bird = Bird(50, HEIGHT//2)
+    enemy_bird = Bird(50, HEIGHT, color=(128, 0, 128))
+    if os.path.exists("weights\\best_brain.pth"):
+        enemy_bird.brain.load("weights\\best_brain.pth")
+    else:
+        enemy_bird = None
+
     pipe_generator = PipeGenerator(100, HEIGHT, WIDTH, 120)
     running = True
 
@@ -37,7 +45,11 @@ def main():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
                     flappy_bird.flap()
-        
+
+                if event.key == pygame.K_p:
+                    if enemy_bird is not None:
+                        enemy_bird.alive = not enemy_bird.alive
+
         flappy_bird.update(HEIGHT)
         collided, id = pipe_generator.detect_collisions(flappy_bird.rect)
         if collided:
@@ -51,11 +63,21 @@ def main():
                 score += 1 
                 last_seen_score_idx = pipe.id
                 break
-
+        
         pipe_generator.delete_old_pipes()
         pipe_generator.update()
 
         pipe_generator.draw(screen)
+
+        if enemy_bird is not None:
+            if enemy_bird.alive:
+                collided, id = pipe_generator.detect_collisions(enemy_bird.rect)
+                if collided:
+                    enemy_bird.alive = False
+                enemy_bird.think(pipe_generator.pipes, HEIGHT, WIDTH)
+                enemy_bird.update(HEIGHT)
+                enemy_bird.draw(screen)
+                
         flappy_bird.draw(screen)
 
         error_text = FONT.render(f"ERRORS: {errors}", True, (0, 255, 0))

@@ -4,13 +4,14 @@ from bird_brain import BirdBrain
 import torch
 
 class Bird():
-    def __init__(self, x, y, brain=None):
+    def __init__(self, x, y, brain=None, color=None):
         """
         The bird moves only on the y axis.
         """
         self.x = x
         self.y = y
         self.radius = 7
+        self.color = color if color != None else (255, 200, 0)
 
         self.rect = pygame.Rect(self.x - self.radius, self.y - self.radius, self.radius*2, self.radius*2)
 
@@ -81,7 +82,6 @@ class Bird():
                 noise = torch.randn_like(param) * mutation_strength
                 param.data += mask * noise
 
-
     def flap(self):
         self.velocity += self.flap_force
         
@@ -104,7 +104,8 @@ class Bird():
         self.fitness += 1
 
     def draw(self, screen):
-        pygame.draw.circle(screen, (255, 200, 0), (self.x, self.y), self.radius)
+        pygame.draw.circle(screen, self.color, (self.x, self.y), self.radius)
+        pygame.draw.circle(screen, self.color, (self.x + 5, self.y), 3)
 
 
 class BirdPopulation():
@@ -112,6 +113,7 @@ class BirdPopulation():
         self.birds = []
         for _ in range(num_birds):
             self.birds.append(Bird(x, y))
+        self.best_fitness = 0
 
     def check_bird_are_dead(self):
         for bird in self.birds:
@@ -150,6 +152,11 @@ class BirdPopulation():
             self.birds.sort(key=lambda b: b.fitness, reverse=True)
             elite = self.birds[:10]  # keep ten best performing birds
             new_birds = elite.copy() 
+
+            best_bird = elite[0]
+            if best_bird.fitness > self.best_fitness:
+                self.best_fitness = best_bird.fitness
+                best_bird.brain.save("weights\\best_brain.pth")
 
             for _ in range(len(self.birds)-len(new_birds)):
                 parentA = self.weighted_selection()
@@ -239,8 +246,7 @@ class PipeGenerator():
     def delete_old_pipes(self):
         while len(self.pipes) > 0:
             if self.pipes[0].top_pipe.x + self.pipes[0].pipe_dim < 0:
-                self.pipes.pop(0) 
-                print("DELETED!")
+                self.pipes.pop(0)
             else:
                 break
     

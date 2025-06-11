@@ -1,5 +1,6 @@
-from torch import nn
+from torch import nn, torch
 import torch.nn.functional as F
+import os
 
 class BirdBrain(nn.Module):
     def __init__(self):
@@ -15,3 +16,11 @@ class BirdBrain(nn.Module):
         x = F.relu(self.fc2(x))     
         x = self.out(x)       
         return x
+    
+    def save(self, path):
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        torch.save(self.state_dict(), path)
+
+    def load(self, path):
+        self.load_state_dict(torch.load(path))
+        self.eval()
