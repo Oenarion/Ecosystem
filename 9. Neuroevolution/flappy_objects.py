@@ -1,8 +1,10 @@
 import pygame
 import random
+from bird_brain import BirdBrain
+import torch
 
 class Bird():
-    def __init__(self, x, y):
+    def __init__(self, x, y, brain=None):
         """
         The bird moves only on the y axis.
         """
@@ -16,23 +18,153 @@ class Bird():
         self.gravity = 0.5
         self.flap_force = -10
 
+        if brain:
+            self.brain = brain
+        else:
+            self.brain = BirdBrain()
+
+        self.alive = True
+        self.fitness = 0
+
+    def think(self, pipes, height, width):
+        """
+        Runs the neural network to know if the bird has to flap or not.
+        Returns the idx of the next pipe to compute collisions afterwards.
+        """
+        idx = -1
+        
+        for i, pipe in enumerate(pipes):
+            if pipe.top_pipe.x + pipe.top_pipe.w > self.rect.x:
+                idx = i
+                break
+        
+        inputs = torch.tensor([self.y / height,
+                  self.velocity / height,
+                  pipes[idx].bottom_pipe.y / height,
+                  (pipes[idx].bottom_pipe.x + pipes[idx].bottom_pipe.w) / width],
+                  dtype=torch.float32)
+        
+        with torch.no_grad():
+            output = self.brain(inputs)
+
+        if torch.argmax(output).item() == 0:
+            self.flap()
+
+        return idx
+
+    def crossover(self, brain2: BirdBrain, height):
+        """
+        Child is created as a crossover between two parents.
+        """
+        brain1_parameters = list(self.brain.parameters())
+        brain2_parameters = list(brain2.parameters())
+
+        child_brain = BirdBrain()
+        for p_child, p1, p2 in zip(child_brain.parameters(), brain1_parameters, brain2_parameters):
+            mask = torch.rand_like(p1) > 0.5
+            p_child.data.copy_(torch.where(mask, p1.data, p2.data))
+        child = Bird(self.x, height//2, child_brain)
+        return child
+
+    def mutate(self, mutation_rate = 0.05, mutation_strength = 0.1):
+        for param in self.brain.parameters():
+            if len(param.shape) == 2:  # matrices
+                mask = torch.rand_like(param) < mutation_rate
+                noise = torch.randn_like(param) * mutation_strength
+                param.data += mask * noise
+            else:  # bias 
+                mask = torch.rand_like(param) < mutation_rate
+                noise = torch.randn_like(param) * mutation_strength
+                param.data += mask * noise
+
+
     def flap(self):
         self.velocity += self.flap_force
 
     def update(self, HEIGHT):
         self.velocity += self.gravity
         self.y += self.velocity
-        self.rect.y = self.y - self.radius
 
         self.velocity *= 0.95
 
         if self.y > HEIGHT - self.radius:
             self.y = HEIGHT - self.radius
             self.velocity = 0
+        if self.y - self.radius < 0:
+            self.y = self.radius
+
+        self.rect.y = self.y - self.radius
+        #update fitness function
+        self.fitness += 1
 
     def draw(self, screen):
         pygame.draw.circle(screen, (255, 200, 0), (self.x, self.y), self.radius)
 
+
+class BirdPopulation():
+    def __init__(self, num_birds, x, y):
+        self.birds = []
+        for _ in range(num_birds):
+            self.birds.append(Bird(x, y))
+
+    def check_bird_are_dead(self):
+        for bird in self.birds:
+            if bird.alive:
+                return False
+        return True
+    
+    def weighted_selection(self):
+        """
+        Select the parent for the next child.
+        In this case we take a random point from 0 to 1 and progressively remove 
+        the fitness score of the current rocket. Since fitness scores are normalized
+        in the worst case scenario we will pick the last element.
+        """
+        start = random.uniform(0, 1)
+        idx = 0
+        while start > 0:
+            start -= self.birds[idx].fitness
+            idx += 1
+        
+        idx -= 1
+        return self.birds[idx]
+
+    def normalize_fitness(self):
+        fitness_sum = 0
+        for bird in self.birds:
+            fitness_sum += bird.fitness
+
+        for bird in self.birds:
+            bird.fitness /= fitness_sum 
+
+    def run(self, pipes, height, width):
+        if self.check_bird_are_dead():
+            new_birds = []
+            self.normalize_fitness()
+            for _ in range(len(self.birds)):
+                parentA = self.weighted_selection()
+                parentB = self.weighted_selection()
+                child = parentA.crossover(parentB.brain, height)
+                child.mutate()
+                new_birds.append(child)
+            self.birds = new_birds
+            return True
+        else:
+            for bird in self.birds:
+                if bird.alive:
+                    idx = bird.think(pipes, height, width)
+                    collision, _ = pipes[idx].collision(bird.rect)
+                    if collision:
+                        bird.alive = False
+                        print("DEAD!")
+                    else:
+                        bird.update(height)
+            return False
+
+    def draw(self, screen):
+        for bird in self.birds:
+            if bird.alive:
+                bird.draw(screen)
 
 class Pipe():
     def __init__(self, spacing, height, width, id, start_y = None):
@@ -50,7 +182,7 @@ class Pipe():
 
         self.top_pipe = pygame.Rect((width, 0, self.pipe_dim, self.top_pipe_y))
         self.bottom_pipe = pygame.Rect((width, self.bottom_pipe_y, self.pipe_dim, height))
-        self.velocity = -1.5
+        self.velocity = -3
 
     def update(self):
         self.top_pipe.x += self.velocity
