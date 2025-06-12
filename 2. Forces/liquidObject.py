@@ -37,7 +37,7 @@ class Liquid():
         drag_force *= -1
         drag_force *= drag_magnitude
 
-        buoyant_force = pygame.Vector2(0, -mass * 0.3)
+        buoyant_force = pygame.Vector2(0, -mass * 0.2)
         
         return drag_force, buoyant_force
     

@@ -4,7 +4,7 @@ This repository explores the concept of [random walks](https://en.wikipedia.org/
 
 ---
 
-## Main File
+## Main Files
 
 ### 🚶‍♂️ `random_walkers.py`
 

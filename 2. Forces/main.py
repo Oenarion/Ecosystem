@@ -196,7 +196,7 @@ def simulation1_main():
     
 
     water = liquidObject.Liquid(0, 300, WIDTH, HEIGHT - 300, WATER_COLOR)
-    oil = liquidObject.Liquid(0, 250, WIDTH, 50, OIL_COLOR, 0.5)
+    oil = liquidObject.Liquid(0, 250, WIDTH, 50, OIL_COLOR, 0.8)
 
     liquids = [water, oil]
     for i in range(num_movers):
@@ -221,7 +221,7 @@ def simulation1_main():
     apply_increased_gravity = False
     negative_increasing_gravity = pygame.Vector2(0, -0.5)
     apply_negative_increased_gravity = False
-    wind = pygame.Vector2(0.5, 0)
+    wind = pygame.Vector2(2, 0)
     is_wind_blowing = False
 
     pygame.display.set_caption("Liquid Simulation")

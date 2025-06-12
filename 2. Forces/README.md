@@ -1,58 +1,73 @@
-# FORCES
-This chapter is focussed on forces, which are mainly gravity, drag force, friction and gravitational force.
-In this file you will find for now **3 different simulations**.
-### Liquid simulation
-Two things were mainly tested in this simulation:
-  - **The drag force**, exerted by the liquid which makes the mover object fall more slowly to the ground and works on the y axis (can change depending on the liquid). 
-  - **The friction force**, exerted by the floor on the mover, making resistance when trying to move the object on the x axis.
+# 🌌 FORCES
 
-Two liquids can be found in the simulation:
-  - **Water**, applies a basic drag force following the formula.
-  - **Oil**, applies also a bouncy effect that makes movers reach the surface of the liquid if they are not heavy enough.
-    
-Additional forces were used just to give a more realistic feel to the simulation:
-  - **Gravity**, which pushes the movers down, always applied unless the mover is on the floor.
-  - **Wind force**, can be applied with **the mouse left click** and moves the movers on the x axis, depending on the mover's position relative to the mouse (mover's to the right w.r.t. the mouse will be pushed right and viceversa).
-  - **Increasing gravity force**, can be applied with **Q** and pushes the movers down, it reaches a maximum value which can be set from the code.
-  - **Increasing negative gravity force**, can be applied with **W**, does the same thing as the *increasing gravity force*...just in the other way.
+This repository explores the physics of **forces** in 2D simulations using `pygame`. Each file demonstrates key mechanical principles like **drag**, **friction**, and **gravity**.
 
-## Gravitational force simulation
-This simulation tests the gravitational force, by using the movers and a new object, the attractor.
-The attractor(s) is fixed in place and pulls the movers to him.
+---
 
-During the simulation there's a small chance during each iteration that a new mover or a new attractor spawns, at the same time there's also a small chance that one of the attractors dies. 
-On the other hand the movers will die when they go out of the boundaries (out of the canvas).
+## Main Files
 
-**Movers** will come *"from outer space"* (spawn), i.e. from the edges of the canvas, to make it feel like they are coming, as I have just written, from outer space.
+### `Main.py`
+Contains all the simulation of this repository, which are explained in details afterwards.
 
-**Attractors** will spawn and die by rapidly enlarging or shrinking over time, the *spawn time and death time variable* can be changed in the Attractor class. This makes the attractor feel more real as it is rapidly gaining fuel
-or losing it all before vanishing, like it was a real star.
+### 🌊 `liquid simulation`
 
-This ensures that the simulation feels more real and not static.
+This simulation explores how objects behave when submerged in different liquids:
 
-## N-body problem [^1]
-The N-body problem simulation just takes what was done from the *Gravitational force simulation* and mixes it up, movers and attractors are now **bodies**, which have the ability to both attract and get attracted.
+#### Simulated Forces:
+- **Drag force**: Slows down falling objects in the liquid, applied on the Y axis.
+- **Friction**: Slows horizontal movement when the object is in contact with the floor.
+- **Gravity**: Constantly pulls objects down unless they're grounded.
+- **Wind**: Apply a side force via `left mouse click`, direction depends on object position relative to the mouse.
+- **Dynamic gravity**:
+  - Press `Q` to **increase gravity** over time (until a max threshold).
+  - Press `W` to apply **negative gravity**, lifting objects instead.
 
-**Bodies** follow the same spawn method of **attractors** and the same death method of the **movers**. 
+#### Liquids in Simulation:
+- **Water**: Applies regular drag.
+- **Oil**: Applies drag plus a buoyant-like bounce that may float lightweight objects back to the surface.
 
-Like the other simulation the bodies have a small chance to spawn at each iteration (*1%*), to make the simulation feel more real.
+#### Visual Example
+![Liquid simulation](gifs/liquid_simulation.gif)
+> The simulation displays the use of increased gravity and increased negative gravity, and also the use of wind. You can see how sometimes the drag force is almost null as the gravity is too much to handle.
+---
 
+### 🪐 `gravitational force`
 
+Simulates basic attraction between free-moving objects and stationary attractors.
 
-**TO DO** :
-  - Liquid simulation:
-    - [x] Try adding different liquids and different densities (maybe some liquid keeps the object on the surface) and also give them a specific color (water blue, oil yellow, etc).
-    - [x] Modify the wind force such that it moves the object away from the mouse position (i.e. if the object is to the right of the mouse it will be moved to the right).
-    - [x] New type of gravity force which forces the object down if the liquid keeps pulling it up.
-    
-  - In the gravitational simulation:
-    - [x] Instead of deleting an attractor right away, let's delete by slowly shrinking it, like it's losing all of its energy.
-    - [x] The spawning of new attractors and new movers must be without any collision, so no mover could spawn inside another attractor or attractors inside other attractors.
-    
-  - N-body problem:
-    - [x] Create the simulation.
-    - [x] add spawn of new bodies and maybe also some attractors/movers just for the lols.
-   
-  - [ ] BEATIFY THE SIMULATIONS IF NEEDED!
+#### Key Concepts:
+- **Attractors**: Fixed objects that pull nearby movers with gravitational force.
+- **Movers**: Spawn randomly from canvas edges (*"from outer space"*) and get attracted toward attractors.
+- **Spawning & Death**:
+  - New movers or attractors spawn randomly during the simulation.
+  - Movers die when exiting the screen.
+  - Attractors "die" by shrinking away after depleting their metaphorical "fuel".
 
-[^1]: N-body problem explanation [(https://en.wikipedia.org/wiki/N-body_problem)].
+This setup simulates a dynamic star system where stars are born and collapse, attracting free-floating bodies from space.
+
+####  Visual Example
+![Gravitational Force](gifs/gravitational_force.gif)
+> Simulation of the gravitational force, with the birth and death of attractors and also the birth of new movers from outer space
+
+---
+
+### ☄️ `n body simulation`
+
+An extension of the gravitational simulation, where **every object is a body** capable of both attracting and being attracted, the so called [n-body problem](https://en.wikipedia.org/wiki/N-body_problem).
+
+#### Features:
+- Combines the roles of movers and attractors into a single `Body` class.
+- Each body interacts gravitationally with every other body.
+- Bodies spawn randomly (1% chance per frame) and die upon leaving the screen.
+
+####  Visual Example
+
+![N body](gifs/n_body_problem.gif)  
+> N bodies attracting each others.
+
+---
+
+## 🧠 Footnotes
+
+- [N-body problem (Wikipedia)](https://en.wikipedia.org/wiki/N-body_problem)
+- [Forces in physics (Wikipedia)](https://en.wikipedia.org/wiki/Force)
