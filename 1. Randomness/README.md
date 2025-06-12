@@ -1,30 +1,72 @@
-# What is this?
-"In mathematics, a random walk, sometimes known as a drunkard's walk, is a stochastic process that describes a path that consists of a succession of random steps on some mathematical space."[^1]
+# 🌀 Random Walkers
 
-# How does it work?
-The algorithm is pretty simple, at the start a random number of walkers is generated at a random position between the boundaries, this walker will either be:
-- Random walkers, at each iteration they choose a random value from the range (-1, 1) and add it to their x and y, effectively doing a random step.
-- Gaussian walkers, the next step is decided taking from a gaussian distribution with a random mean (-5, 5) and random standard deviation (0, 2).
-- Perlin walkers, which use perlin noise[^2], the rationale is basically the same but this time the step is decided using a random timestep followed by the computation of the perlin noise for that timestep. Also additional noise is used in the equation to give the walker extra randomicity.
+This repository explores the concept of [random walks](https://en.wikipedia.org/wiki/Random_walk), a type of stochastic process where entities take a sequence of random steps in space. Often called the "drunkard's walk," it's a fundamental idea in probability, physics, and algorithmic art.
 
-Random walkers will leave footprints of the last 100 steps they've taken, also a new random walker has a 0.0001% chance to spawn at each iteration, so that the simulation feels more diverse.
+---
 
-# TO DO
+## Main File
 
-- [x] Add a user interface
-  - #### OPTIONAL
-  - [ ] different simulations? (create walls after the walkers trail, etc...)
-  - [ ] modify noise parameters?
-  - [x] Add exit button with loading circle
-  - [x] Add Gaussian Random Walk.
-- [x] Add another file in which AI agents to adapt to the envinroment and try to reach another walker
-  - [x] Add timer if agents get stuck for multiple time
-  - [x] Add penalty for repeated steps
-  - [ ] Add more then two agents, each one following a certain one and escaping from a certain one
-  - [ ] Add acceleration when a walker is following a good lead
-  - [ ] Try deep reinforcement learning
-- [ ] Still thinking...
+### 🚶‍♂️ `random_walkers.py`
 
+This simulation starts with a group of walkers, each spawned at a random position within defined boundaries. Over time, they move according to different step-generation algorithms:
 
-[^1]: Explanation of random walk [(https://en.wikipedia.org/wiki/Random_walk)].
-[^2]: Explanation of Perlin noise [(https://en.wikipedia.org/wiki/Perlin_noise)].
+- **Classic Random Walkers**
+  - Move randomly on the X and Y axes by selecting a value in the range (-1, 1) each frame.
+  - Produce jittery and highly unpredictable paths.
+
+- **Gaussian Walkers**
+  - Each step is sampled from a Gaussian distribution with:
+    - A random mean in the range (-5, 5)
+    - A random standard deviation between (0, 2)
+  - This creates more varied but still smooth movements.
+
+- **Perlin Walkers**
+  - Use [Perlin noise](https://en.wikipedia.org/wiki/Perlin_noise) to determine each step.
+  - A random time offset is used to compute the noise, ensuring unique movement per walker.
+  - Additional noise is injected to increase variability and create organic, flowing motion.
+
+#### Additional Details
+
+- Walkers leave behind a trail of their last 100 steps.
+- At each frame, there's a very small chance (0.0001%) for a new walker to spawn, keeping the simulation dynamic over time.
+- There's an option menu to change the number of walkers at the start of the simulation.
+- Cool circle effect by pressing `ESC` to interrupt the simulation.
+
+#### Visual Example:
+
+![Random Walk](gifs/randomWalker.gif)
+
+> *Random walker simulation*
+
+---
+
+### 🧠 `agentsWalk.py`
+
+This simulation introduces some basic concepts of [Reinforcement Learning](https://en.wikipedia.org/wiki/Reinforcement_learning), specifically using [Q-learning](https://en.wikipedia.org/wiki/Q-learning), through the interaction of two agents in a 2D environment.
+
+- The **green agent** (Agent 1) must learn to reach the **red agent** (Agent 2) within a 100-second time window.
+- Agents choose their actions using a Q-table, which updates over time based on:
+  - **Learning rate**: `0.2`
+  - **Discount factor**: `0.9`
+  - **Exploration rate**: starts at `0.8` and decays gradually every few frames.
+
+#### Additional Details:
+- Trail effect using alpha transparency to visualize agent paths.
+- Automatic reset of episodes after timeout or success (agents getting close).
+- Agents don’t need to occupy the exact same cell—getting close is enough to trigger success (neighbouring cells).
+- Exploration rate decays over time, with occasional resets to encourage re-exploration.
+- Same cool circle effect from before pressing `ESC`.
+---
+
+#### Visual Example:
+
+![Agents Walk](gifs/agentWalk.gif)
+
+> *The green agent learns over time how to reach the red one faster.*
+
+## Footnotes
+
+- [Random Walk (Wikipedia)](https://en.wikipedia.org/wiki/Random_walk)
+- [Perlin Noise (Wikipedia)](https://en.wikipedia.org/wiki/Perlin_noise)
+- [Reinforcement Learning (Wikipedia)](https://en.wikipedia.org/wiki/Reinforcement_learning)
+- [Q-table (Wikipedia)](https://en.wikipedia.org/wiki/Q-learning)
