@@ -26,7 +26,7 @@ This file contains **three different simulations**, all focusing on oscillation 
 <p align="center">
   <img src="gifs/rotating_objects.gif" width="30%" />
   <img src="gifs/oscillators.gif" width="30%" />
-  <img src="gifs/wave.gif" width="30%" />
+  <img src="gifs/wave_simulation.gif" width="30%" />
 </p>
 
 > Visual example of the three simulations discussed before
