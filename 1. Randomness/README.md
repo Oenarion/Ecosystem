@@ -43,8 +43,9 @@ This simulation starts with a group of walkers, each spawned at a random positio
 ### 🧠 `agentsWalk.py`
 
 This simulation introduces some basic concepts of [Reinforcement Learning](https://en.wikipedia.org/wiki/Reinforcement_learning), specifically using [Q-learning](https://en.wikipedia.org/wiki/Q-learning), through the interaction of two agents in a 2D environment.
+Although it is not strictly a 'random walk' I decided to include it in this repository as I initially programmed it before going into the reiforcement learning part.
 
-- The **green agent** (Agent 1) must learn to reach the **red agent** (Agent 2) within a 100-second time window.
+- The **green agent** (Agent 1) and the **red agent** (Agent 2) must get close to eachothers within a 100-second time window.
 - Agents choose their actions using a Q-table, which updates over time based on:
   - **Learning rate**: `0.2`
   - **Discount factor**: `0.9`
