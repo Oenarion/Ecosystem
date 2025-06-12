@@ -1,15 +1,43 @@
-# Particle Systems
+# 💨 Particle Systems
 
-This directory explores basics of the concept of Particle Systems[^1], it's pretty simple and you will find two main scripts.
+This project explores the fundamentals of [particle systems](https://en.wikipedia.org/wiki/Particle_system), a technique widely used in computer graphics and simulations to represent fuzzy phenomena like fire, smoke, explosions, or magical effects.
 
-# Main files
+---
 
-- **particle_main.py**: It contains an emitter which creates a random number of particles before expiring, new emitters can be created by mouse click. 
-- **ball_death_animation.py**: It contains a ball which hits the ground and explodes into many different balls, simulating a sort of shuttering.
+##  Main Files
 
-# TO DO
+### 🌪️ `emitters.py`
 
-- [ ] The ball death animation could create others "death balls" from the explosion which shutter even more when hitting the walls
+This script implements a basic **particle emitter** system:
 
+- Emitters spawn a **random number of particles** at creation time.
+- Each particle has properties like **lifespan, velocity, size, and transparency** that evolve over time.
+- `Left-clicking` on the canvas creates new emitters dynamically.
+- The simulation uses additive blending and fading effects to simulate a trail and smooth disappearance.
 
-[^1]: Particle Systems [(https://en.wikipedia.org/wiki/Particle_system#:~:text=A%20particle%20system%20is%20a,techniques%20%E2%80%93%20usually%20highly%20chaotic%20systems%2C)].
+#### Visual Examples
+
+![Emitters](gifs/emitters.gif)
+
+> Emitters are created dinamically and each one has a different number of particles that can create.
+
+---
+
+### 💥 `ball_death_animation.py`
+
+This script simulates a **destruction effect**:
+
+- A ball drops due to gravity and, upon hitting the ground, **explodes into multiple smaller particles**.
+- The resulting "shatter" creates a convincing death or impact animation.
+
+#### Visual Examples
+
+![Death ball](gifs/death_ball_animation.gif)
+
+> Ball exploding into tiny little balls.
+
+---
+
+## 📚 Footnotes
+
+- [Particle Systems (Wikipedia)](https://en.wikipedia.org/wiki/Particle_system)
