@@ -32,7 +32,7 @@ This script simulates a **destruction effect**:
 
 #### Visual Examples
 
-![Death ball](gifs/death_ball_animation.gif)
+![Death ball](gifs/ball_death_animation.gif)
 
 > Ball exploding into tiny little balls.
 
