@@ -1,6 +1,6 @@
 # 💨 Particle Systems
 
-This project explores the fundamentals of [particle systems](https://en.wikipedia.org/wiki/Particle_system), a technique widely used in computer graphics and simulations to represent fuzzy phenomena like fire, smoke, explosions, or magical effects.
+This repository explores the fundamentals of [particle systems](https://en.wikipedia.org/wiki/Particle_system), a technique widely used in computer graphics and simulations to represent fuzzy phenomena like fire, smoke, explosions, or magical effects.
 
 ---
 

@@ -29,7 +29,7 @@ def update_text(text, font, pos, screen):
 def main_menu():
     pygame.init()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
-    pygame.display.set_caption("")
+    pygame.display.set_caption("Complex systems")
     clock = pygame.time.Clock()
 
     simulation1_button = gc.Button(WIDTH // 2 - 150, HEIGHT // 2 - 150, 300, 50, "Separation")
