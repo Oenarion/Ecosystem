@@ -1,6 +1,6 @@
 # 🧬 Cellular Automata
 
-This project explores the fundamentals of [Cellular Automata](https://en.wikipedia.org/wiki/Cellular_automaton), computational models made up of discrete cells that evolve over time based on local interaction rules.
+This repository explores the fundamentals of [Cellular Automata](https://en.wikipedia.org/wiki/Cellular_automaton), computational models made up of discrete cells that evolve over time based on local interaction rules.
 
 One of the most iconic examples is **Conway’s Game of Life**, which showcases how simple rules can lead to complex, emergent behavior.
 
