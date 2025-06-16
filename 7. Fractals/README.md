@@ -1,44 +1,99 @@
-# Fractals
-This directory explores the fundamentals of Fractals [^1]. It goes from simple Fractal such as the Cantor Set[^2], Koch Curve (Koch Snowflake)[^3] to more advanced ones like the Mandelbrot Set[^4] and the Julia Set[^5], ending with a simulation of L-systems[^6].
+# ❄️ Fractals
 
-# Main files
-- **circles.py**
+This repository explores the fundamentals of [Fractals](https://en.wikipedia.org/wiki/Fractal), geometric figures where each part has a structure similar to the whole.  
+It starts from simple deterministic fractals like the [**Cantor Set**](https://en.wikipedia.org/wiki/Cantor_set) and [**Koch Curve**](https://en.wikipedia.org/wiki/Koch_snowflake), and extends to more complex mathematical beauties like the [**Mandelbrot Set**](https://en.wikipedia.org/wiki/Mandelbrot_set), [**Julia Set**](https://en.wikipedia.org/wiki/Julia_set), and [**L-systems**](https://en.wikipedia.org/wiki/L-system).
 
-  Contains two simulations of testing backtracking stuff with circles.
+---
 
-- **deterministic_fractals.py**
+## Main Files
 
-  Contains the first "fractals" simulations. Starting with the **Cantor Set** simulation, in which the set rotates because it was boring otherwise. This simulation has some extra "features", `R` can be used to reset the simulation, `N` to stop the rotation and `C` to display a variation of the Cantor set, with, you guessed it, **circles**!
+### 🟣 `repeating_circles.py`
+
+Contains two simulations testing **backtracking effects with circles**:
+
+- The first one displays an infinte loop of expanding circles, giving the effect of a tunnel like shape and constant motion.
+- The second one creates an intricate pattern with overlapping circles, which constantly follows a shrinking and an expansion.
   
-  The other simulation displays a **Koch Curve** the amount of backtracking steps can be changed using a slider.
-  
-  Finally the last simulation displays the **Koch Snowflake**, and again the amount of backtracking steps can be changed.
-- **mandelbrot.py**
+#### Visual Example
 
-  The name is pretty self explanatory, or is it? The actual simulation is divided in two parts, the left part of the screen has the **Mandelbrot Set**, which is constant. On the right however, the **Julia Set** is displayed! Julia Sets can be generated starting from a certain point of the Mandelbrot set, by simply taking the current mouse position (if it's in the left part of the screen) the corresponding Julia set will be displayed.
-  
-  By using `mouse wheel` it is possible to zoom on the half of the screen in which the mouse is currently, by pressing `P` you can pause the updates of the Julia set, so that it's easier to zoom in or zoom out. Finally with `R` you can reset the simulation.
+![Circles](gifs/circles.gif)
 
-  I didn't watch the optimization part, so the code runs pretty slowly, deal with it.
-- **trees.py**
+> TO DO.
 
-  This program contains three simulation, each one generating different types of **Fractal Trees[^7]**. The first one contains a plain Fractal Tree, by using sliders you can change the angle of each new branch, the decay length of each branch and also the number of total backpropagation steps.
+---
 
-  The second simulation just shows the backpropragation process, by constructing the tree in branch call order.
+### 🧱 `deterministic_fractals.py`
 
-  Finally the final simulation is a Random Fractal Tree, which changes at each frame, the effect it creates made me laugh (total chaos tree) so it remained unchanged.
+A bundle of **classic fractal simulations**:
 
-- **l_systems.py**
+- **Cantor Set** with a twist: it **rotates over time** and supports a, you guessed it! `circle` variation via the `C` key. Press `R` to reset, `N` to stop the rotation.
+- **Koch Curve** with adjustable recursion depth via a slider.
+- **Koch Snowflake** follows the same principle—recursive construction with dynamic control.
 
-  Finally the last simulation contains the **L-systems**, again with a slider it's possible to change the angle by which a rotated branch gets created. I used a standard rule system and the simulation is deterministic.
+#### Visual Example
 
-  The system also oscillates by using a simple periodic function, it should remind an algae being moved by currents. 
+![Deterministic](gifs/deterministic_fractals.gif)
 
-## Footnotes
-[^1]: [Fractal](https://en.wikipedia.org/wiki/Fractal)
-[^2]: [Cantor Set](https://en.wikipedia.org/wiki/Cantor_set)
-[^3]: [Koch Curve](https://en.wikipedia.org/wiki/Koch_snowflake)
-[^4]: [Mandelbrot Set](https://en.wikipedia.org/wiki/Mandelbrot_set)
-[^5]: [Julia Set](https://en.wikipedia.org/wiki/Julia_set)
-[^6]: [L-systems](https://en.wikipedia.org/wiki/L-system)
-[^7]: [Fractal Trees](https://en.wikipedia.org/wiki/Fractal_canopy)
+> TO DO.
+
+---
+
+### 🌌 `mandelbrot.py`
+
+Pretty self explanatory name, or is it? The simulation is actually an hybrid visualization of the **Mandelbrot** and **Julia Sets**:
+
+- Left side shows the **static Mandelbrot Set**.
+- Right side dynamically displays the **Julia Set**, generated from the mouse position over the Mandelbrot.
+- Use `mouse wheel` to zoom in or out, `P` to pause the Julia update, and `R` to reset.
+
+#### Visual Example
+
+![Mandelbrot](gifs/mandelbrot.gif)
+
+> TO DO.
+
+> ⚠️ Note: not optimized — performance may vary.
+
+---
+
+### 🌳 `trees.py`
+
+Three simulations of [**Fractal Trees**](https://en.wikipedia.org/wiki/Fractal_canopy):
+
+- A **basic tree** with sliders for branch angle, decay factor, and recursion depth.
+- A **construction visualizer**, showing the recursive backpropagation step-by-step.
+- A **random tree generator**, re-randomizing each frame, which made me laugh, so deal with it, you get a new tree every frame.
+
+#### Visual Example
+
+![Trees](gifs/trees.gif)
+
+> TO DO.
+
+---
+
+### 🌿 `l_systems.py`
+
+A smooth and flowing implementation of **L-systems**:
+
+- Uses standard deterministic rules to generate recursive patterns.
+- Branch angle is adjustable via a slider.
+- Animation includes a **sinusoidal oscillation**, mimicking seaweed moved by underwater currents.
+
+#### Visual Example
+
+![L-Systems](gifs/l_systems.gif)
+
+> TO DO.
+
+---
+
+## 📚 Footnotes
+
+- [Fractal (Wikipedia)](https://en.wikipedia.org/wiki/Fractal)  
+- [Cantor Set](https://en.wikipedia.org/wiki/Cantor_set)  
+- [Koch Curve](https://en.wikipedia.org/wiki/Koch_snowflake)  
+- [Mandelbrot Set](https://en.wikipedia.org/wiki/Mandelbrot_set)  
+- [Julia Set](https://en.wikipedia.org/wiki/Julia_set)  
+- [L-systems](https://en.wikipedia.org/wiki/L-system)  
+- [Fractal Trees](https://en.wikipedia.org/wiki/Fractal_canopy)
