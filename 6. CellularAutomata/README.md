@@ -19,7 +19,7 @@ A basic **1D cellular automaton**:
 
 #### Visual Example
 
-![1D CA](gifs/1d_ca.gif)
+![1D CA](gifs/1d_CA.gif)
 
 > Random rules at every step create unpredictable evolutions that often stabilize or repeat.
 
@@ -34,7 +34,7 @@ A minimal version of **Conway’s Game of Life**:
 
 #### Visual Example
 
-![GOL](gifs/game_of_life.gif)
+![GOL](gifs/gol.gif)
 
 > Classic patterns like gliders and still lifes can emerge naturally from random initial states.
 
