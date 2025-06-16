@@ -1,31 +1,83 @@
-# Cellular Automata
+# 🧬 Cellular Automata
 
-This directory explores the fundamentals of Cellular Automata[^1] (CA), with its most iconic example: Conway’s *Game of Life*[^2].
+This project explores the fundamentals of [Cellular Automata](https://en.wikipedia.org/wiki/Cellular_automaton), computational models made up of discrete cells that evolve over time based on local interaction rules.
 
-## Main files
+One of the most iconic examples is **Conway’s Game of Life**, which showcases how simple rules can lead to complex, emergent behavior.
 
-- **1d_CA.py**  
-  A basic 1D cellular automaton, where each cell’s next state depends on itself and its two immediate neighbors.  
-  In this simulation, a new ruleset (composed of 2<sup>3</sup> rules) is randomly generated for each generation.  
-  Each generation is stacked vertically, providing a sense of time evolution.  
-  After several iterations, the system often reaches a stable or repetitive state.  
-
-- **game_of_life.py**  
-  A straightforward implementation of Conway’s Game of Life.
-
-- **oop_gol.py**  
-  An object-oriented implementation of Game of Life.  
-  Adds visual feedback through color transitions, indicating state changes.  
-  Pressing `C` toggles a mode where temporal information is embedded—cells gradually fade or light up over time.
-
-- **gol_variation.py**  
-  A variation where multiple Game of Life instances run simultaneously across different regions of the canvas.  
-  Each region evolves independently, creating a layered dynamic across the grid.
-
-Press `R` to reset each simulation.
 ---
 
-## Footnotes
+## Main Files
 
-[^1]: [Cellular Automata](https://en.wikipedia.org/wiki/Cellular_automaton)  
-[^2]: [Game of Life](https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life)
+### 🔲 `1d_CA.py`
+
+A basic **1D cellular automaton**:
+
+- Each cell updates its state based on itself and its two neighbors.
+- A new **random rule set** (8 total rules) is generated every generation.
+- Generations are **stacked vertically**, giving a clear view of the time evolution.
+- Patterns often reach stable or oscillatory configurations.
+
+#### Visual Example
+
+![1D CA](gifs/1d_ca.gif)
+
+> Random rules at every step create unpredictable evolutions that often stabilize or repeat.
+
+---
+
+### 🧠 `game_of_life.py`
+
+A minimal version of **Conway’s Game of Life**:
+
+- Implements the original ruleset.
+- Grid updates over time, showing how patterns grow, die, or stabilize.
+
+#### Visual Example
+
+![GOL](gifs/game_of_life.gif)
+
+> Classic patterns like gliders and still lifes can emerge naturally from random initial states.
+
+---
+
+### `oop_gol.py`
+
+An **object-oriented** take on the Game of Life:
+
+- Adds **color transitions** for visualizing state changes.
+- Pressing `C` toggles a mode where **cell age is shown through fading effects**.
+
+#### Visual Example
+
+![OOP GOL](gifs/oop_gol.gif)
+
+> Aging effect helps visualize the history of cells—newborns light up while old cells fade.
+
+---
+
+### `gol_variation.py`
+
+A creative variation of the Game of Life:
+
+- The canvas is split into **multiple regions**, each running its own simulation.
+- Each region evolves independently, creating a layered and diverse grid dynamic.
+
+#### Visual Example
+
+![Variation](gifs/gol_variation.gif)
+
+> Each region lives its own "life"—some go still, some stay chaotic.
+
+---
+
+## 🔄 Controls
+
+- Press `R` to reset the simulation (available in most scripts).
+- Press `C` in `oop_gol.py` to toggle the aging visualization.
+
+---
+
+## 📚 Footnotes
+
+- [Cellular Automata (Wikipedia)](https://en.wikipedia.org/wiki/Cellular_automaton)  
+- [Game of Life (Wikipedia)](https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life)
