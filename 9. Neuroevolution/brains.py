@@ -29,17 +29,20 @@ class BirdBrain(nn.Module):
 class SnakeBrain(nn.Module):
     def __init__(self):
         super(SnakeBrain, self).__init__()
-        # input: head_position_x, head_position_y, food position_x, food_position_y, 
-        # distance from food x, distance from food y, normalized distance, curr_direction
+        # input: head_position (x,y), food position (x, y), distance from food (x,y), 
+        # binary direction of food (left, right, down, up), danger of 4 possible moves (snake hits himself),
+        # snake lenght, last direction
         # output: one of the possible directions 0:left, 1:up, 2:right, 3:down
         # Layer sizes: 7 -> 40 -> 40 -> 4
-        self.fc1 = nn.Linear(8, 40)   
-        self.fc2 = nn.Linear(40, 40)   
-        self.out = nn.Linear(40, 4)   
+        self.fc1 = nn.Linear(16, 64)   
+        self.fc2 = nn.Linear(64, 32)   
+        self.fc3 = nn.Linear(32, 16)
+        self.out = nn.Linear(16, 4)      
 
     def forward(self, x):
-        x = F.relu(self.fc1(x))     
-        x = F.relu(self.fc2(x))     
+        x = F.relu(self.fc1(x))    
+        x = F.relu(self.fc2(x))
+        x = F.relu(self.fc3(x))     
         x = self.out(x)       
         return x
     

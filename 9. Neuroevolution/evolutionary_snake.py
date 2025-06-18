@@ -4,24 +4,18 @@ from snake_objects import Snake, SnakePopulation
 import os
 
 
-WIDTH = 400
-HEIGHT = 400
+WIDTH = 200
+HEIGHT = 200
 DIM = 10
 BACKGROUND_COLOR = (0, 0, 0)
 TIME = time.time()
-snake_population = 500
+snake_population = 200
 move_map = {
     0: 'A',
     1: 'W',
     2: 'D',
     3: 'S'
 }
-
-def check_illegal_move(new_move, last_move):
-    if (new_move == 'D' and last_move == 'A') or (new_move == 'A' and last_move == 'D') \
-        or (new_move == 'W' and last_move == 'S') or (new_move == 'S' and last_move == 'W'):
-        return True
-    return False
 
 def main():
     
@@ -33,11 +27,11 @@ def main():
     running = True
     run_number = 0
     last_moves = ['D' for _ in range(snake_population)]
-    start_x, start_y = 31, 21
+    start_x, start_y = 10, 10
     snakes = SnakePopulation(snake_population, start_x, start_y, WIDTH, HEIGHT, DIM)
     for snake in snakes.snakes:
-        snake.grid.grid[31][21] = 'S'
-        snake.grid.add_food()
+        snake.grid.grid[start_x][start_y] = 'S'
+        snake.grid.add_food(avoid_row = start_x)
 
 
     pygame.display.set_caption("Evolutionary Snake")
@@ -56,7 +50,7 @@ def main():
 
         # Update display
         pygame.display.update()
-        clock.tick(30)
+        clock.tick(60)
 
 
 

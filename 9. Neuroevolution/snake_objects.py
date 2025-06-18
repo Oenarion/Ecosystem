@@ -35,13 +35,26 @@ class Grid():
         if not eaten:
             self.grid[last_position[0]][last_position[1]] = 0
 
-    def add_food(self):
-        rand_x, rand_y = random.randint(0, self.rows - 1), random.randint(0, self.cols - 1)
-        while self.grid[rand_x][rand_y] == 'S':
-            rand_x, rand_y = random.randint(0, self.rows - 1), random.randint(0, self.cols - 1)
-        
-        self.grid[rand_x][rand_y] = 'F'
-        self.food_position = (rand_x, rand_y)
+    def add_food(self, snake_positions=None, avoid_row=None):
+        """
+        snake_positions: list of tuples with all the snake positions [(x1, y1), (x2, y2), ...]
+        avoid_row: row to avoid
+        """
+        while True:
+            rand_x = random.randint(0, self.rows - 1)
+            rand_y = random.randint(0, self.cols - 1)
+
+            if avoid_row is not None and rand_x == avoid_row:
+                continue
+
+            if snake_positions and (rand_x, rand_y) in snake_positions:
+                continue
+
+            # Tutto ok, piazza il cibo
+            self.grid[rand_x][rand_y] = 'F'
+            self.food_position = (rand_x, rand_y)
+            break
+
 
     def draw(self, screen):
         for i in range(len(self.grid)):
@@ -66,7 +79,7 @@ class Snake():
         self.fitness = 0
         self.is_alive = True
         self.same_move_counter = 0
-        self.steps_since_food = 0
+        self.steps_since_food = 200
 
     def think(self, last_direction):
         """
@@ -83,23 +96,76 @@ class Snake():
         rows, cols = len(self.grid.grid), len(self.grid.grid[0])
         food_x, food_y = self.grid.food_position
         head_x, head_y = self.positions[0]
+        
+        dx = food_x - head_x
+        dy = food_y - head_y
+        
+        # Normalized distances
+        dx_norm = dx / rows
+        dy_norm = dy / cols
+        
+        food_left = 1.0 if dx < 0 else 0.0    # food is on the left
+        food_right = 1.0 if dx > 0 else 0.0   # food is on the right
+        food_up = 1.0 if dy < 0 else 0.0      # food is upwards
+        food_down = 1.0 if dy > 0 else 0.0    # food is downwards
+        
+        # Check collisions with himself
+        danger_left = self.check_collision_in_direction(head_x, head_y, 'A')
+        danger_up = self.check_collision_in_direction(head_x, head_y, 'W')  
+        danger_right = self.check_collision_in_direction(head_x, head_y, 'D')
+        danger_down = self.check_collision_in_direction(head_x, head_y, 'S')
+        
         inputs = torch.tensor([
-            head_x / cols,
-            head_y / rows,
-            food_x / cols,
-            food_y / rows,
-            head_x - food_x / cols,
-            head_y - food_y / rows,
-            math.sqrt( ((food_x - head_x) / cols)**2 + ((food_y - head_y) / rows)**2 ),
-            dir_map[last_direction]
-            ], dtype=torch.float32)
+            head_x / rows,        # head position
+            head_y / cols,
+            food_x / rows,        # food position 
+            food_y / cols,
+            dx_norm,              # distance normalized
+            dy_norm,
+            food_left,            # binary direction of food
+            food_right,
+            food_up, 
+            food_down,
+            danger_left,          # danger in the 4 positions
+            danger_up,
+            danger_right,
+            danger_down,
+            len(self.positions) / (rows * cols),  # length snake
+            dir_map[last_direction]  # last direction
+        ], dtype=torch.float32)
 
         with torch.no_grad():
             output = self.brain(inputs)
-
-        item_num = torch.argmax(output).item()
-
+        
+        probabilities = torch.softmax(output, dim=0)
+        
+        if random.random() < 0.9:  # choose best option 90% of the time
+            item_num = torch.argmax(output).item()
+        else:  # little bit of randomicity 10% of the times
+            item_num = torch.multinomial(probabilities, 1).item()
+        
         return item_num
+
+    def check_collision_in_direction(self, x, y, direction):
+        """
+        Check if there's a collision in the next step
+        """
+        rows, cols = len(self.grid.grid), len(self.grid.grid[0])
+        
+        if direction == 'A':
+            next_x = (x - 1) % rows
+            next_y = y
+        elif direction == 'W':
+            next_x = x
+            next_y = (y - 1) % cols
+        elif direction == 'D':
+            next_x = (x + 1) % rows
+            next_y = y
+        else:  # 'S'
+            next_x = x
+            next_y = (y + 1) % cols
+    
+        return 1.0 if (next_x, next_y) in self.positions else 0.0
 
     def crossover(self, brain2: SnakeBrain, start_x, start_y, WIDTH, HEIGHT, DIM):
         """
@@ -183,7 +249,7 @@ class SnakePopulation():
     def __init__(self, population_size, start_x, start_y, WIDTH, HEIGHT, DIM):
         self.snakes = [Snake(start_x, start_y, Grid(WIDTH, HEIGHT, DIM)) for _ in range(population_size)]
         self.best_fitness = 0
-        self.max_steps = 4000
+        self.max_steps = 1000
         self.max_steps_no_food = 200
         self.curr_steps = 0
 
@@ -194,10 +260,8 @@ class SnakePopulation():
         return True
     
     def check_illegal_move(self, new_move, last_move):
-        if (new_move == 'D' and last_move == 'A') or (new_move == 'A' and last_move == 'D') \
-            or (new_move == 'W' and last_move == 'S') or (new_move == 'S' and last_move == 'W'):
-            return True
-        return False
+        return (new_move == 'D' and last_move == 'A') or (new_move == 'A' and last_move == 'D') \
+            or (new_move == 'W' and last_move == 'S') or (new_move == 'S' and last_move == 'W')
     
     def weighted_selection(self):
         """
@@ -237,6 +301,8 @@ class SnakePopulation():
             self.snakes.sort(key=lambda b: b.fitness, reverse=True)
             elite = self.snakes[:50]  # keep ten best performing snakes
             new_snakes = elite.copy() 
+            for snake in new_snakes:
+                snake.grid.add_food(snake.positions, avoid_row=start_x)
 
             best_snake = elite[0]
             if best_snake.fitness > self.best_fitness:
@@ -251,7 +317,7 @@ class SnakePopulation():
                 mutation_rate = max(0.1, 1.0 - (num_run / 300))
                 mutation_strength = max(0.05, 0.8 - (num_run / 500))
                 child.mutate(mutation_rate=mutation_rate, mutation_strength=mutation_strength)
-                child.grid.add_food()
+                child.grid.add_food(snake.positions, avoid_row=start_x)
                 new_snakes.append(child)
             self.snakes = new_snakes
 
@@ -261,45 +327,94 @@ class SnakePopulation():
                 if snake.is_alive:
                     new_move = snake.think(last_moves[i])
                     new_direction = move_map[new_move]
-                    if last_moves[i] == new_direction:
-                        snake.same_move_counter += 1
-                    else:
-                        snake.same_move_counter = 0
                     
-                    if snake.same_move_counter > 30:
-                        snake.fitness -= 2
-                    if not self.check_illegal_move(new_direction, last_moves[i]):
-                        last_moves[i] = new_direction
-                    else:
-                        snake.fitness -= 5
+                    # distance before movement
+                    old_distance = abs(snake.positions[0][0] - snake.grid.food_position[0]) + \
+                                abs(snake.positions[0][1] - snake.grid.food_position[1])
+                    
+                    if self.check_illegal_move(new_direction, last_moves[i]):
+                        # if it does an illegal move we don't kill him but choose the best move
+                        # also give him penalty
+                        valid_moves = ['A', 'W', 'D', 'S']
+                        opposite = self.get_opposite_move(last_moves[i])
+                        valid_moves.remove(opposite)
+                        
+                        best_move = self.choose_best_move_toward_food(snake, valid_moves)
+                        new_direction = best_move
+                        snake.fitness -= 10  # Penalità ridotta
+                    
+                    last_moves[i] = new_direction
                     snake.move(last_moves[i])
                     eaten = snake.eat()
                     snake.check_hit()
-                    distance_x = abs(snake.positions[0][0] - snake.grid.food_position[0])
-                    distance_y = abs(snake.positions[0][1] - snake.grid.food_position[1])
-                    distance_to_food = distance_x + distance_y 
-
+                    
+                    # computes distance after movement
+                    new_distance = abs(snake.positions[0][0] - snake.grid.food_position[0]) + \
+                                abs(snake.positions[0][1] - snake.grid.food_position[1])
+                    
+                    
                     if eaten:
-                        snake.fitness += 100  
-                        snake.grid.add_food()
-                        snake.steps_since_food = 0
+                        snake.fitness += 100  # big rewards if it eats
+                        snake.grid.add_food(snake.positions)
+                        snake.steps_since_food = self.max_steps_no_food
                     else:
-                        snake.fitness += -0.1 * distance_to_food  
-                        snake.fitness += 0.5  
-                        snake.steps_since_food += 1
+                        # reward if he gets close, penalty if he gets away
+                        if new_distance < old_distance:
+                            snake.fitness += 2  
+                        elif new_distance > old_distance:
+                            snake.fitness -= 1  
+                        
+                        snake.fitness += 0.1  # reward for survival
+                        snake.steps_since_food -= 1
 
-                    if snake.steps_since_food > self.max_steps_no_food:
+                    if snake.steps_since_food < 0:
                         snake.is_alive = False
-                        snake.steps_since_food = 0
+                        snake.steps_since_food = self.max_steps_no_food
 
                     snake.grid.update_grid(snake.positions[0], snake.last_position, eaten)
+                    
                     if not already_drawn:
-                        # print(f"NEW DIRECTION: {new_direction}")
-                        # print(f"LAST MOVES: {last_moves[i]}")
                         print(f"STEPS: {self.curr_steps}")
                         snake.grid.draw(screen)
                         already_drawn = True
             return False
+
+    def get_opposite_move(self, move):
+        """
+        Get the opposite (illegal) move
+        """
+        opposites = {'A': 'D', 'D': 'A', 'W': 'S', 'S': 'W'}
+        return opposites.get(move, '')
+
+    def choose_best_move_toward_food(self, snake, valid_moves):
+        head_x, head_y = snake.positions[0]
+        food_x, food_y = snake.grid.food_position
+        rows, cols = len(snake.grid.grid), len(snake.grid.grid[0])
+        
+        best_move = valid_moves[0]
+        best_distance = float('inf')
+        
+        for move in valid_moves:
+            if move == 'A':
+                next_x = (head_x - 1) % rows
+                next_y = head_y
+            elif move == 'W':
+                next_x = head_x
+                next_y = (head_y - 1) % cols
+            elif move == 'D':
+                next_x = (head_x + 1) % rows
+                next_y = head_y
+            else:  # 'S'
+                next_x = head_x
+                next_y = (head_y + 1) % cols
+            
+            distance = abs(next_x - food_x) + abs(next_y - food_y)
+            
+            if (next_x, next_y) not in snake.positions and distance < best_distance:
+                best_distance = distance
+                best_move = move
+        
+        return best_move
 
     def draw(self, screen):
         for snake in self.snakes:
