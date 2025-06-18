@@ -1,6 +1,6 @@
 import pygame
 import random
-from bird_brain import BirdBrain
+from brains import BirdBrain
 import torch
 
 class Bird():
@@ -107,7 +107,6 @@ class Bird():
         pygame.draw.circle(screen, self.color, (self.x, self.y), self.radius)
         pygame.draw.circle(screen, self.color, (self.x + 5, self.y), 3)
 
-
 class BirdPopulation():
     def __init__(self, num_birds, x, y):
         self.birds = []
@@ -156,7 +155,7 @@ class BirdPopulation():
             best_bird = elite[0]
             if best_bird.fitness > self.best_fitness:
                 self.best_fitness = best_bird.fitness
-                best_bird.brain.save("weights\\best_brain.pth")
+                best_bird.brain.save("weights\\best_bird_brain.pth")
 
             for _ in range(len(self.birds)-len(new_birds)):
                 parentA = self.weighted_selection()
@@ -221,7 +220,6 @@ class Pipe():
     def draw(self, screen):
         pygame.draw.rect(screen, (128, 128, 128), self.top_pipe)
         pygame.draw.rect(screen, (128, 128, 128), self.bottom_pipe)
-
 
 class PipeGenerator():
     def __init__(self, spacing, height, width, pipe_distance):

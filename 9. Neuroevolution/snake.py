@@ -4,8 +4,8 @@ from snake_objects import Snake, Grid
 import os
 
 
-WIDTH = 640
-HEIGHT = 420
+WIDTH = 400
+HEIGHT = 400
 DIM = 10
 BACKGROUND_COLOR = (0, 0, 0)
 TIME = time.time()
@@ -59,7 +59,8 @@ def main():
         direction_chosen = False
         snake.move(last_seen_move)
         eaten = snake.eat()
-        if snake.check_hit():
+        snake.check_hit()
+        if not snake.is_alive:
             print("GAME OVER")
             running = False
         if eaten:
