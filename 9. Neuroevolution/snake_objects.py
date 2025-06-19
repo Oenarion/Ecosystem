@@ -61,11 +61,14 @@ class Grid():
             break
 
 
-    def draw(self, screen):
+    def draw(self, screen, head_position):
         for i in range(len(self.grid)):
             for j in range(len(self.grid[0])):
-                if self.grid[i][j] == 'S': 
-                    pygame.draw.rect(screen, (0, 255, 0), pygame.Rect(i*self.dim, j*self.dim, self.dim, self.dim))
+                if self.grid[i][j] == 'S':
+                    if i == head_position[0] and j == head_position[1]: 
+                        pygame.draw.rect(screen, (255, 0, 0), pygame.Rect(i*self.dim, j*self.dim, self.dim, self.dim))
+                    else:
+                        pygame.draw.rect(screen, (0, 255, 0), pygame.Rect(i*self.dim, j*self.dim, self.dim, self.dim))
                 elif self.grid[i][j] == 'F':
                     pygame.draw.rect(screen, (200, 100, 0), pygame.Rect(i*self.dim, j*self.dim, self.dim, self.dim))
 
@@ -254,8 +257,8 @@ class SnakePopulation():
     def __init__(self, population_size, start_x, start_y, WIDTH, HEIGHT, DIM):
         self.snakes = [Snake(start_x, start_y, Grid(WIDTH, HEIGHT, DIM)) for _ in range(population_size)]
         self.best_fitness = 0
-        self.max_steps = 1000
-        self.max_steps_no_food = 500
+        self.max_steps = 2000
+        self.max_steps_no_food = 300
         self.curr_steps = 0
 
     def check_snakes_are_dead(self):
@@ -286,8 +289,10 @@ class SnakePopulation():
     
     def normalize_fitness(self):
         fitness_sum = 0
-        for snakes in self.snakes:
-            fitness_sum += snakes.fitness
+        for snake in self.snakes:
+            if snake.fitness < 0:
+                snake.fitness = 0
+            fitness_sum += snake.fitness
 
         if fitness_sum == 0:
             for snakes in self.snakes:
@@ -295,8 +300,10 @@ class SnakePopulation():
         else:
             for snakes in self.snakes:
                 snakes.fitness /= fitness_sum
+                # print(snakes.fitness)
 
     def run(self, start_x, start_y, WIDTH, HEIGHT, DIM, last_moves, screen, num_run):
+        rows, cols = WIDTH // DIM, HEIGHT // DIM
         self.curr_steps += 1
         already_drawn = False
         if self.check_snakes_are_dead() or self.curr_steps > self.max_steps:
@@ -311,10 +318,11 @@ class SnakePopulation():
                 new_snakes[i].grid.add_food(new_snakes[i].positions, avoid_row=start_x)
 
             best_snake = elite[0]
-            if best_snake.fitness > self.best_fitness:
-                print(f"New Best fitness! {self.best_fitness}")
+            # print(f"Best fitness of this generation: {best_snake.fitness}")
+            if num_run % 50 == 0 and num_run != 0:
+                # print(f"New Best fitness! {best_snake.fitness}")
                 self.best_fitness = best_snake.fitness
-                best_snake.brain.save("weights\\best_snake_brain.pth")
+                best_snake.brain.save(f"weights\\best_snake_brain_{rows}x{cols}_{num_run}_epochs.pth")
 
             for _ in range(len(self.snakes)-len(new_snakes)):
                 parentA = self.weighted_selection()
@@ -380,7 +388,7 @@ class SnakePopulation():
                     snake.grid.update_grid(snake.positions[0], snake.last_position, eaten)
                     
                     if not already_drawn:
-                        print(f"STEPS: {self.curr_steps}")
+                        #print(f"STEPS: {self.curr_steps}")
                         snake.grid.draw(screen)
                         already_drawn = True
             return False

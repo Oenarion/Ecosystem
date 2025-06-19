@@ -1,6 +1,6 @@
 import pygame
 import time
-from snake_objects import Snake, SnakePopulation
+from snake_objects import SnakePopulation
 import os
 
 
