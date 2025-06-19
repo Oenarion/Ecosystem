@@ -35,6 +35,11 @@ class Grid():
         if not eaten:
             self.grid[last_position[0]][last_position[1]] = 0
 
+    def clear_food(self):
+        if self.food_position != ():
+            self.grid[self.food_position[0]][self.food_position[1]] = ''
+
+
     def add_food(self, snake_positions=None, avoid_row=None):
         """
         snake_positions: list of tuples with all the snake positions [(x1, y1), (x2, y2), ...]
@@ -79,7 +84,7 @@ class Snake():
         self.fitness = 0
         self.is_alive = True
         self.same_move_counter = 0
-        self.steps_since_food = 200
+        self.steps_since_food = 500
 
     def think(self, last_direction):
         """
@@ -250,7 +255,7 @@ class SnakePopulation():
         self.snakes = [Snake(start_x, start_y, Grid(WIDTH, HEIGHT, DIM)) for _ in range(population_size)]
         self.best_fitness = 0
         self.max_steps = 1000
-        self.max_steps_no_food = 200
+        self.max_steps_no_food = 500
         self.curr_steps = 0
 
     def check_snakes_are_dead(self):
@@ -301,8 +306,9 @@ class SnakePopulation():
             self.snakes.sort(key=lambda b: b.fitness, reverse=True)
             elite = self.snakes[:50]  # keep ten best performing snakes
             new_snakes = elite.copy() 
-            for snake in new_snakes:
-                snake.grid.add_food(snake.positions, avoid_row=start_x)
+            for i in range(len(new_snakes)):
+                new_snakes[i] = Snake(start_x, start_y, Grid(WIDTH, HEIGHT, DIM), new_snakes[i].brain)
+                new_snakes[i].grid.add_food(new_snakes[i].positions, avoid_row=start_x)
 
             best_snake = elite[0]
             if best_snake.fitness > self.best_fitness:
@@ -317,7 +323,7 @@ class SnakePopulation():
                 mutation_rate = max(0.1, 1.0 - (num_run / 300))
                 mutation_strength = max(0.05, 0.8 - (num_run / 500))
                 child.mutate(mutation_rate=mutation_rate, mutation_strength=mutation_strength)
-                child.grid.add_food(snake.positions, avoid_row=start_x)
+                child.grid.add_food(child.positions, avoid_row=start_x)
                 new_snakes.append(child)
             self.snakes = new_snakes
 
