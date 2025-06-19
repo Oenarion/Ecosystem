@@ -66,7 +66,7 @@ class Grid():
             for j in range(len(self.grid[0])):
                 if self.grid[i][j] == 'S':
                     if i == head_position[0] and j == head_position[1]: 
-                        pygame.draw.rect(screen, (255, 0, 0), pygame.Rect(i*self.dim, j*self.dim, self.dim, self.dim))
+                        pygame.draw.rect(screen, (100, 200, 0), pygame.Rect(i*self.dim, j*self.dim, self.dim, self.dim))
                     else:
                         pygame.draw.rect(screen, (0, 255, 0), pygame.Rect(i*self.dim, j*self.dim, self.dim, self.dim))
                 elif self.grid[i][j] == 'F':
@@ -389,7 +389,7 @@ class SnakePopulation():
                     
                     if not already_drawn:
                         #print(f"STEPS: {self.curr_steps}")
-                        snake.grid.draw(screen)
+                        snake.grid.draw(screen, snake.positions[0])
                         already_drawn = True
             return False
 
@@ -433,4 +433,4 @@ class SnakePopulation():
     def draw(self, screen):
         for snake in self.snakes:
             if snake.is_alive:
-                snake.grid.draw(screen)
+                snake.grid.draw(screen, snake.positions[0])

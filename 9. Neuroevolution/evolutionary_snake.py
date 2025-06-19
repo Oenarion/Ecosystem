@@ -4,8 +4,8 @@ from snake_objects import SnakePopulation
 import os
 
 
-WIDTH = 200
-HEIGHT = 200
+WIDTH = 300
+HEIGHT = 300
 DIM = 10
 BACKGROUND_COLOR = (0, 0, 0)
 TIME = time.time()
