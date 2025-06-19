@@ -63,7 +63,7 @@ Although it is not strictly a 'random walk' I decided to include it in this repo
 
 ![Agents Walk](gifs/agentWalk.gif)
 
-> *The green agent learns over time how to reach the red one faster.*
+> *The two agents learning how to get near each others.*
 
 ## Footnotes
 
