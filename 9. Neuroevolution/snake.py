@@ -67,7 +67,7 @@ def main():
             score += 1
             grid.add_food()
         grid.update_grid(snake.positions[0], snake.last_position, eaten)
-        grid.draw(screen)
+        grid.draw(screen, snake.positions[0])
 
         score_text = FONT.render(f"SCORE: {score}", True, (200, 255, 0))
         screen.blit(score_text, (WIDTH//2 - 50, 10))

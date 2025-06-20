@@ -2,10 +2,9 @@ import pygame
 import time
 from snake_objects import SnakePopulation
 import os
+import sys
 
 
-WIDTH = 300
-HEIGHT = 300
 DIM = 10
 BACKGROUND_COLOR = (0, 0, 0)
 TIME = time.time()
@@ -17,7 +16,7 @@ move_map = {
     3: 'S'
 }
 
-def main():
+def main(WIDTH, HEIGHT):
     
     pygame.init()
     clock = pygame.Clock()
@@ -55,4 +54,11 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    if len(sys.argv) > 1:
+        WIDTH = int(sys.argv[1])
+        HEIGHT = int(sys.argv[2])
+        print(WIDTH, HEIGHT)
+    else:
+        WIDTH = 200
+        HEIGHT = 200
+    main(WIDTH, HEIGHT)
