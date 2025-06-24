@@ -29,7 +29,7 @@ This file contains **three different simulations**, all focusing on oscillation 
   <img src="gifs/wave_simulation.gif" width="30%" />
 </p>
 
-> Visual example of the three simulations discussed before
+> Visual example of the three simulations discussed before.
 
 ---
 
