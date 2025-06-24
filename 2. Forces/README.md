@@ -47,7 +47,7 @@ This setup simulates a dynamic star system where stars are born and collapse, at
 
 ####  Visual Example
 ![Gravitational Force](gifs/gravitational_force.gif)
-> Simulation of the gravitational force, with the birth and death of attractors and also the birth of new movers from outer space
+> Simulation of the gravitational force, with the birth and death of attractors and also the birth of new movers from outer space.
 
 ---
 
