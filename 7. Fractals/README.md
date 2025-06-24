@@ -95,9 +95,9 @@ A smooth and flowing implementation of **L-systems**:
 ## 📚 Footnotes
 
 - [Fractal (Wikipedia)](https://en.wikipedia.org/wiki/Fractal)  
-- [Cantor Set](https://en.wikipedia.org/wiki/Cantor_set)  
-- [Koch Curve](https://en.wikipedia.org/wiki/Koch_snowflake)  
-- [Mandelbrot Set](https://en.wikipedia.org/wiki/Mandelbrot_set)  
-- [Julia Set](https://en.wikipedia.org/wiki/Julia_set)  
-- [L-systems](https://en.wikipedia.org/wiki/L-system)  
-- [Fractal Trees](https://en.wikipedia.org/wiki/Fractal_canopy)
+- [Cantor Set (Wikipedia)](https://en.wikipedia.org/wiki/Cantor_set)  
+- [Koch Curve (Wikipedia)](https://en.wikipedia.org/wiki/Koch_snowflake)  
+- [Mandelbrot Set (Wikipedia)](https://en.wikipedia.org/wiki/Mandelbrot_set)  
+- [Julia Set (Wikipedia)](https://en.wikipedia.org/wiki/Julia_set)  
+- [L-systems (Wikipedia)](https://en.wikipedia.org/wiki/L-system)  
+- [Fractal Trees (Wikipedia)](https://en.wikipedia.org/wiki/Fractal_canopy)
