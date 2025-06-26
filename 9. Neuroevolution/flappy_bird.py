@@ -21,11 +21,12 @@ def main():
     FONT = pygame.font.Font(None, 24)
     flappy_bird = Bird(50, HEIGHT//2)
     enemy_bird = Bird(50, HEIGHT, color=(128, 0, 128))
-    if os.path.exists("weights\\best_brain.pth"):
-        enemy_bird.brain.load("weights\\best_brain.pth")
+    if os.path.exists("weights\\best_bird_brain.pth"):
+        enemy_bird.brain.load("weights\\best_bird_brain.pth")
     else:
         enemy_bird = None
 
+    print(enemy_bird)
     pipe_generator = PipeGenerator(100, HEIGHT, WIDTH, 120)
     running = True
 
