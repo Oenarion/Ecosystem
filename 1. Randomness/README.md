@@ -36,7 +36,7 @@ This simulation starts with a group of walkers, each spawned at a random positio
 
 ![Random Walk](gifs/randomWalker.gif)
 
-> *Random walker simulation*
+> *Random walker simulation.*
 
 ---
 

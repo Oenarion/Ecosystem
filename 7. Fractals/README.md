@@ -16,9 +16,8 @@ Contains two simulations testing **backtracking effects with circles**:
   
 #### Visual Example
 
-![Circles](gifs/circles.gif)
+![Circles](gifs/repeating_circles.gif)
 
-> TO DO.
 
 ---
 
@@ -31,10 +30,13 @@ A bundle of **classic fractal simulations**:
 - **Koch Snowflake** follows the same principle—recursive construction with dynamic control.
 
 #### Visual Example
+<p align="center">
+  <img src="gifs/cantor_set.gif" width="30%" />
+  <img src="gifs/koch_curve.gif" width="30%" />
+  <img src="gifs/koch_snowflake.gif" width="30%" />
+</p>
 
-![Deterministic](gifs/deterministic_fractals.gif)
-
-> TO DO.
+> Visual example of the three simulations discussed before.
 
 ---
 
@@ -50,7 +52,7 @@ Pretty self explanatory name, or is it? The simulation is actually an hybrid vis
 
 ![Mandelbrot](gifs/mandelbrot.gif)
 
-> TO DO.
+> Mandelbrot and Julia set visualization.
 
 > ⚠️ Note: not optimized — performance may vary.
 
@@ -65,11 +67,13 @@ Three simulations of [**Fractal Trees**](https://en.wikipedia.org/wiki/Fractal_c
 - A **random tree generator**, re-randomizing each frame, which made me laugh, so deal with it, you get a new tree every frame.
 
 #### Visual Example
+<p align="center">
+  <img src="gifs/deterministic_tree.gif" width="30%" />
+  <img src="gifs/step_by_step_tree.gif" width="30%" />
+  <img src="gifs/random_tree.gif" width="30%" />
+</p>
 
-![Trees](gifs/trees.gif)
-
-> TO DO.
-
+> Visual example of the three simulations discussed before.
 ---
 
 ### 🌿 `l_systems.py`
@@ -84,16 +88,16 @@ A smooth and flowing implementation of **L-systems**:
 
 ![L-Systems](gifs/l_systems.gif)
 
-> TO DO.
+> Smooth animation am i right?
 
 ---
 
 ## 📚 Footnotes
 
 - [Fractal (Wikipedia)](https://en.wikipedia.org/wiki/Fractal)  
-- [Cantor Set](https://en.wikipedia.org/wiki/Cantor_set)  
-- [Koch Curve](https://en.wikipedia.org/wiki/Koch_snowflake)  
-- [Mandelbrot Set](https://en.wikipedia.org/wiki/Mandelbrot_set)  
-- [Julia Set](https://en.wikipedia.org/wiki/Julia_set)  
-- [L-systems](https://en.wikipedia.org/wiki/L-system)  
-- [Fractal Trees](https://en.wikipedia.org/wiki/Fractal_canopy)
+- [Cantor Set (Wikipedia)](https://en.wikipedia.org/wiki/Cantor_set)  
+- [Koch Curve (Wikipedia)](https://en.wikipedia.org/wiki/Koch_snowflake)  
+- [Mandelbrot Set (Wikipedia)](https://en.wikipedia.org/wiki/Mandelbrot_set)  
+- [Julia Set (Wikipedia)](https://en.wikipedia.org/wiki/Julia_set)  
+- [L-systems (Wikipedia)](https://en.wikipedia.org/wiki/L-system)  
+- [Fractal Trees (Wikipedia)](https://en.wikipedia.org/wiki/Fractal_canopy)
