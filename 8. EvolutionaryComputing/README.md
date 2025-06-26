@@ -66,7 +66,7 @@ Simulates a basic ecosystem of autonomous agents ("bloops") and food.
 
 ## Footnotes
 
-- [Evolutionary Computation](https://en.wikipedia.org/wiki/Evolutionary_computation)
-- [Infinite Monkey Theorem](https://en.wikipedia.org/wiki/Infinite_monkey_theorem)
-- [Mutation in Genetic Algorithms](https://en.wikipedia.org/wiki/Mutation_(evolutionary_algorithm))
-- [Crossover in Genetic Algorithms](https://en.wikipedia.org/wiki/Crossover_(evolutionary_algorithm))
+- [Evolutionary Computation (Wikipedia)](https://en.wikipedia.org/wiki/Evolutionary_computation)
+- [Infinite Monkey Theorem (Wikipedia)](https://en.wikipedia.org/wiki/Infinite_monkey_theorem)
+- [Mutation in Genetic Algorithms (Wikipedia)](https://en.wikipedia.org/wiki/Mutation_(evolutionary_algorithm))
+- [Crossover in Genetic Algorithms (Wikipedia)](https://en.wikipedia.org/wiki/Crossover_(evolutionary_algorithm))
