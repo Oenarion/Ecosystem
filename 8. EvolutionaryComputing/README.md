@@ -1,4 +1,4 @@
-# Evolutionary Computing
+# 🔬 Evolutionary Computing
 
 This repository explores the fundamentals of [Evolutionary Computation](https://en.wikipedia.org/wiki/Evolutionary_computation). It includes three different simulations that demonstrate key concepts of genetic algorithms such as mutation, crossover, and fitness-based optimization.
 
