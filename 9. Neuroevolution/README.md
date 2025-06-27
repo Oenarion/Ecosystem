@@ -38,9 +38,12 @@ The output is binary: **flap or not**.
 
 #### Visual Example
 
-![Evolutionary Flappy Bird](gifs/evolutionary_flappy_bird.gif)
+<p align="center">
+  <img src="gifs/evolutionary_flappy_bird1.gif" width="49%" />
+  <img src="gifs/evolutionary_flappy_bird2.gif" width="49%" />
+</p>
 
-> Birds learning to navigate pipes across generations.
+> Left gif contains the first run of the bird while on the right you can see an advanced run, where the bird is learning how to fly properly.
 ---
 
 ### 🐍 snake.py
@@ -52,7 +55,7 @@ Random food spawns on the screen, and your goal is simple: eat and grow. No wall
 
 ![Snake](gifs/snake.gif)
 
-> Classic snake.
+> Check out me struggling to play snake!
 ---
 
 ### 🧠 evolutionary_snake.py
@@ -87,9 +90,12 @@ Output is comprised of four different choices, which are the four cardinal posit
 > Again, this was my implementation, more variables or different parameters may produce a better outcome.
 #### Visual Example
 
-![Evolutionary Snake](gifs/evolutionary_snake.gif)
+<p align="center">
+  <img src="gifs/evolutionary_snake1.gif" width="49%" />
+  <img src="gifs/evolutionary_snake2.gif" width="49%" />
+</p>
 
-> Snakes evolving strategies to eat and survive.
+> Left gif contains the first runs of the snake, on the right you can see advanced snake gameplay.
 ---
 
 ## Footnotes
